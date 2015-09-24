@@ -5,6 +5,13 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<Script file="localization.fr.lua"/>
 	<Script file="localization.cn.lua"/>
 	<Script file="Postal.lua"/>
+	<frame>
+		<Scripts>
+			<OnLoad>
+				Postal_MiniMapMailFrame_Show_Orig = MiniMapMailFrame.Show
+			</OnLoad>
+		</Scripts>
+	</frame>
 	<Button name="PostalButtonTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="37" y="37"/>

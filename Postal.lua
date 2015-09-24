@@ -84,6 +84,14 @@ function Postal:MAIL_CLOSED()
 		end
 	end
 	MiniMapMailFrame:Hide()
+	-- There may be an UPDATE PENDING MAIL event after closing which would make the frame reappear, the following prevents that
+	local t = GetTime()
+	MiniMapMailFrame.Show = function()
+		if GetTime() - t > 2 then
+			MiniMapMailFrame.Show = Postal_MiniMapMailFrame_Show_Orig
+			MiniMapMailFrame:Show()
+		end
+	end
 end
 
 function Postal:MAIL_SEND_SUCCESS() 
