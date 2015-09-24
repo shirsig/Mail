@@ -1,0 +1,936 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
+	<Script file="localization.lua"/>
+	<Script file="localization.ge.lua"/>
+	<Script file="localization.fr.lua"/>
+	<Script file="localization.cn.lua"/>
+	<Script file="Postal.lua"/>
+	<Button name="PostalButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="37" y="37"/>
+		</Size>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture file="Interface\Buttons\UI-Slot-Background">
+					<Size>
+						<AbsDimension x="39" y="39"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="-2" y="2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.640625" top="0" bottom="0.640625"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString name="$parentCount" inherits="NumberFontNormal" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset>
+								<AbsDimension x="-5" y="2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="BORDER">
+				<Texture name="$parentIconTexture"/>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnReceiveDrag>
+				Postal:MailButton_OnClick()
+			</OnReceiveDrag>
+			<OnDragStart>
+				Postal:MailButton_OnClick()
+			</OnDragStart>
+			<OnClick>
+				Postal:MailButton_OnClick()
+			</OnClick>
+			<OnEnter>
+				GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
+				if ( this.item and this.bag ) then
+					GameTooltip:SetBagItem(this.bag,this.item);
+				else
+					GameTooltip:SetText(ATTACHMENT_TEXT, 1.0, 1.0, 1.0);
+				end
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide()
+			</OnLeave>
+		</Scripts> 
+		<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+	</Button>
+	<Frame name="PostalFrame" parent="MailFrame" hidden="true">
+		<Size>
+			<AbsDimension x="384" y="512"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<FontString name="PostalTitleText" inherits="GameFontNormal" text="POSTAL_SEND">
+					<Size>
+						<AbsDimension x="224" y="14"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="6" y="230"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="PostalStatusText" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="224" y="14"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="BOTTOM">
+							<Offset>
+								<AbsDimension x="0" y="125"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString justifyH="left" justifyV="top" name="PostalHelpText" inherits="GameFontNormal" text="POSTAL_HELP">
+					<Size>
+						<AbsDimension x="300" y="150"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="30" y="-105"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<Texture name="PostalHorizontalBarLeft" file="Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar">
+					<Size>
+						<AbsDimension x="256" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="15" y="-350"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="1.0" top="0" bottom="0.25"/>
+				</Texture>
+				<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar">
+					<Size>
+						<AbsDimension x="75" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="PostalHorizontalBarLeft" relativePoint="RIGHT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.29296875" top="0.25" bottom="0.5"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<EditBox name="PostalNameEditBox" letters="12" historyLines="0" autoFocus="false">
+				<Size>
+					<AbsDimension x="122" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="105" y="-46"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<FontString inherits="GameFontNormal" text="MAIL_TO_LABEL" justifyH="RIGHT">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="-12" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+						<Texture name="$parentLeft" file="Interface\Common\Common-Input-Border">
+							<Size>
+								<AbsDimension x="8" y="20"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT">
+									<Offset>
+										<AbsDimension x="-8" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<TexCoords left="0" right="0.0625" top="0" bottom="0.625"/>
+						</Texture>
+						<Texture name="$parentMiddle" file="Interface\Common\Common-Input-Border">
+							<Size>
+								<AbsDimension x="100" y="20"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativeTo="$parentLeft" relativePoint="RIGHT"/>
+							</Anchors>
+							<TexCoords left="0.0625" right="0.9375" top="0" bottom="0.625"/>
+						</Texture>
+						<Texture name="$parentRight" file="Interface\Common\Common-Input-Border">
+							<Size>
+								<AbsDimension x="8" y="20"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativeTo="$parentMiddle" relativePoint="RIGHT"/>
+							</Anchors>
+							<TexCoords left="0.9375" right="1.0" top="0" bottom="0.625"/>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnTabPressed>
+						PostalSubjectEditBox:SetFocus()
+					</OnTabPressed>
+					<OnEditFocusLost>
+						this:HighlightText(0, 0)
+					</OnEditFocusLost>
+					<OnChar>
+						SendMailFrame_SendeeAutocomplete()
+					</OnChar>
+					<OnEnterPressed>
+						PostalSubjectEditBox:SetFocus()
+					</OnEnterPressed>
+					<OnEscapePressed>
+						PostalNameEditBox:ClearFocus()
+					</OnEscapePressed>
+					<OnTextChanged>
+						Postal:CanSend()
+					</OnTextChanged>
+				</Scripts>
+				<FontString inherits="ChatFontNormal"/>
+			</EditBox>
+			<Frame name="PostalCostMoneyFrame" inherits="SmallMoneyFrameTemplate">
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-46" y="-48"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<FontString inherits="GameFontNormal" text="SEND_MAIL_COST">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="-3" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						SmallMoneyFrame_OnLoad()
+						MoneyFrame_SetType("STATIC")
+						MoneyFrame_Update("PostalCostMoneyFrame", GetSendMailPrice())
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<EditBox name="PostalSubjectEditBox" letters="64" historyLines="0" autoFocus="false">
+				<Size>
+					<AbsDimension x="237" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="PostalNameEditBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-3"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<FontString inherits="GameFontNormal" text="MAIL_SUBJECT_LABEL" justifyH="RIGHT">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="-12" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+						<Texture name="$parentLeft" file="Interface\Common\Common-Input-Border">
+							<Size>
+								<AbsDimension x="8" y="20"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT">
+									<Offset>
+										<AbsDimension x="-8" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<TexCoords left="0" right="0.0625" top="0" bottom="0.625"/>
+						</Texture>
+						<Texture name="$parentMiddle" file="Interface\Common\Common-Input-Border">
+							<Size>
+								<AbsDimension x="221" y="20"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativeTo="$parentLeft" relativePoint="RIGHT"/>
+							</Anchors>
+							<TexCoords left="0.0625" right="0.9375" top="0" bottom="0.625"/>
+						</Texture>
+						<Texture name="$parentRight" file="Interface\Common\Common-Input-Border">
+							<Size>
+								<AbsDimension x="8" y="20"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativeTo="$parentMiddle" relativePoint="RIGHT"/>
+							</Anchors>
+							<TexCoords left="0.9375" right="1.0" top="0" bottom="0.625"/>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnTabPressed>
+						PostalNameEditBox:SetFocus()
+					</OnTabPressed>
+					<OnEscapePressed>
+						PostalSubjectEditBox:ClearFocus()
+					</OnEscapePressed>
+				</Scripts>
+				<FontString inherits="ChatFontNormal"/>
+			</EditBox>
+			<Frame name="PostalMoneyFrame" inherits="SmallMoneyFrameTemplate">
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="183" y="84"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Frame>
+			<Button name="PostalCancelButton" inherits="UIPanelButtonTemplate" text="CANCEL">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT">
+						<Offset>
+							<AbsDimension x="-39" y="80"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						HideUIPanel(MailFrame)
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="PostalMailButton" inherits="UIPanelButtonTemplate" text="SEND_LABEL">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="RIGHT" relativeTo="SendMailCancelButton" relativePoint="LEFT">
+						<Offset>
+							<AbsDimension x="0" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						PostalAcceptSendFrame:Show()
+					</OnClick>
+				</Scripts>
+			</Button>
+
+			<Button name="PostalAbortButton" hidden="true" inherits="UIPanelButtonTemplate" text="POSTAL_ABORT">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOM" relativePoint="BOTTOM">
+						<Offset>
+							<AbsDimension x="0" y="105"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						PostalStatusText:SetText(format(POSTAL_ABORTED, PostalGlobalFrame.total-(getn(PostalGlobalFrame.queue)-1), PostalGlobalFrame.total));
+						PostalGlobalFrame.queue = { };
+						PostalGlobalFrame.total = 0;
+						PostalGlobalFrame:Hide();
+					</OnClick>
+				</Scripts>
+			</Button>
+
+			<Button name="PostalButton1" inherits="PostalButtonTemplate" id="1" hidden="false">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-222"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton2" inherits="PostalButtonTemplate" id="2" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton1">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton3" inherits="PostalButtonTemplate" id="3" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton2">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton4" inherits="PostalButtonTemplate" id="4" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton3">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton5" inherits="PostalButtonTemplate" id="5" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton4">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton6" inherits="PostalButtonTemplate" id="6" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton5">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton7" inherits="PostalButtonTemplate" id="7" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton6">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+
+
+
+			<Button name="PostalButton8" inherits="PostalButtonTemplate" id="8" hidden="false">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PostalButton1">
+						<Offset>
+							<AbsDimension x="0" y="-8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton9" inherits="PostalButtonTemplate" id="9" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton8">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton10" inherits="PostalButtonTemplate" id="10" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton9">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton11" inherits="PostalButtonTemplate" id="11" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton10">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton12" inherits="PostalButtonTemplate" id="12" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton11">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton13" inherits="PostalButtonTemplate" id="13" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton12">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton14" inherits="PostalButtonTemplate" id="14" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton13">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+
+
+			<Button name="PostalButton15" inherits="PostalButtonTemplate" id="15" hidden="false">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PostalButton8">
+						<Offset>
+							<AbsDimension x="0" y="-8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton16" inherits="PostalButtonTemplate" id="16" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton15">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton17" inherits="PostalButtonTemplate" id="17" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton16">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton18" inherits="PostalButtonTemplate" id="18" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton17">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton19" inherits="PostalButtonTemplate" id="19" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton18">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton20" inherits="PostalButtonTemplate" id="20" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton19">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="PostalButton21" inherits="PostalButtonTemplate" id="21" hidden="false">
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton20">
+						<Offset>
+							<AbsDimension x="8" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnShow>
+				PostalNameEditBox:SetFocus()
+			</OnShow>
+		</Scripts>
+	</Frame>
+
+	<Button name="MailFrameTab3" inherits="FriendsFrameTabTemplate" id="3" parent="MailFrame" text="Mass Mail">
+		<Anchors>
+			<Anchor point="LEFT" relativeTo="MailFrameTab2" relativePoint="RIGHT">
+				<Offset>
+					<AbsDimension x="-8" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				Postal:MailFrameTab_OnClick()
+			</OnClick>
+		</Scripts>
+	</Button>
+
+	<Frame name="PostalAcceptSendFrame" toplevel="true" frameStrata="DIALOG" movable="true" enableMouse="true" hidden="true" parent="PostalFrame">
+		<Size>
+			<AbsDimension x="400" y="150"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER" relativeTo="UIParent"/>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentHeaderTexture" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="POSTAL_SEND">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentHeaderTexture">
+							<Offset>
+								<AbsDimension x="0" y="-14"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentInfo" justifyV="top" inherits="GameFontNormal" text="POSTAL_SENDINFO">
+					<Size>
+						<AbsDimension x="350" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-78"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentInfoString" justifyV="top" inherits="GameFontNormal" text="POSTAL_SENDINFO2">
+					<Size>
+						<AbsDimension x="350" y="12"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-30"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentInfoItems" justifyV="top" inherits="GameFontNormal" text="">
+					<Size>
+						<AbsDimension x="350" y="12"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentInfoString" relativePoint="BOTTOM">
+							<Offset>
+								<AbsDimension x="0" y="-2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame name="$parentMoneyFrame" inherits="SmallMoneyFrameTemplate">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$parentInfo">
+						<Offset>
+							<AbsDimension x="0" y="5"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SmallMoneyFrame_OnLoad();
+						MoneyFrame_SetType("STATIC");
+						MoneyFrame_Update(this:GetName(), GetSendMailPrice())	
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Button name="$parentSendButton" hidden="false" inherits="GameMenuButtonTemplate" text="POSTAL_SENDBUTTON">
+				<Size>
+					<AbsDimension x="60" y="21"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOM" relativePoint="BOTTOM">
+						<Offset>
+							<AbsDimension x="-32" y="8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						PostalGlobalFrame.queue = Postal:FillItemTable();
+						PostalGlobalFrame.total = getn(PostalGlobalFrame.queue);
+						Postal:ClearItems();
+						PostalGlobalFrame:Show();
+						this:GetParent():Hide();
+						POSTAL_CANSENDNEXT = 1
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="$parentCancelButton" hidden="false" inherits="GameMenuButtonTemplate" text="POSTAL_CANCELBUTTON">
+				<Size>
+					<AbsDimension x="60" y="21"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOM" relativePoint="BOTTOM">
+						<Offset>
+							<AbsDimension x="32" y="8"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						this:GetParent():Hide()
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnShow>
+				getglobal(this:GetName() .. "InfoItems"):SetText(PostalFrame.num .. " " .. POSTAL_ITEMS);
+				MoneyFrame_Update(this:GetName() .. "MoneyFrame", PostalFrame.num*GetSendMailPrice())
+			</OnShow>
+		</Scripts>
+	</Frame>
+	<Frame name="PostalInboxFrame" parent="UIParent">
+		<Scripts>
+			<OnUpdate>
+				Postal:Inbox_OnUpdate(arg1)
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+	<CheckButton name="PostalBoxItemCBTemplate" hidden="true" virtual="true" inherits="OptionsCheckButtonTemplate">
+		<HitRectInsets>
+			<AbsInset left="0" right="0" top="0" bottom="0"/>
+		</HitRectInsets>
+		<Size>
+			<AbsDimension x="24" y="24"/>
+		</Size>
+		<Anchors>
+			<Anchor point="RIGHT" relativePoint="LEFT">
+				<Offset>
+					<AbsDimension x="1" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				Postal_Inbox_SetSelected()
+			</OnClick>
+		</Scripts>
+	</CheckButton>
+	<CheckButton name="PostalBoxItem1CB" id="1" hidden="false" parent="MailItem1" inherits="PostalBoxItemCBTemplate"/>
+	<CheckButton name="PostalBoxItem2CB" id="2" hidden="false" parent="MailItem2" inherits="PostalBoxItemCBTemplate"/>
+	<CheckButton name="PostalBoxItem3CB" id="3" hidden="false" parent="MailItem3" inherits="PostalBoxItemCBTemplate"/>
+	<CheckButton name="PostalBoxItem4CB" id="4" hidden="false" parent="MailItem4" inherits="PostalBoxItemCBTemplate"/>
+	<CheckButton name="PostalBoxItem5CB" id="5" hidden="false" parent="MailItem5" inherits="PostalBoxItemCBTemplate"/>
+	<CheckButton name="PostalBoxItem6CB" id="6" hidden="false" parent="MailItem6" inherits="PostalBoxItemCBTemplate"/>
+	<CheckButton name="PostalBoxItem7CB" id="7" hidden="false" parent="MailItem7" inherits="PostalBoxItemCBTemplate"/>
+	<Button name="PostalInboxOpenSelected" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="POSTAL_INBOX_OPENSELECTED">
+		<Size>
+			<AbsDimension x="120" y="25"/>
+		</Size>
+		<Anchors>
+			<Anchor relativePoint="TOP" point="RIGHT">
+				<Offset>
+					<AbsDimension x="5" y="-53"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				Postal_Inbox_OpenSelected()
+			</OnClick>
+		</Scripts>
+	</Button>
+	<Button name="PostalInboxOpenAllButton" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="POSTAL_INBOX_OPENALL">
+		<Size>
+			<AbsDimension x="120" y="25"/>
+		</Size>
+		<Anchors>
+			<Anchor relativePoint="TOP" point="LEFT">
+				<Offset>
+					<AbsDimension x="10" y="-53"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				ShowUIPanel(PostalInboxOpenAll)
+			</OnClick>
+		</Scripts>
+	</Button>
+	<Frame name="PostalInboxOpenAll" toplevel="true" frameStrata="DIALOG" movable="true" enableMouse="true" hidden="true" parent="MailFrame">
+		<Size>
+			<AbsDimension x="400" y="100"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER" relativeTo="UIParent"/>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentHeaderTexture" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="POSTAL_INBOX_OPENALLTITLE">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentHeaderTexture">
+							<Offset>
+								<AbsDimension x="0" y="-14"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentInfo" justifyV="top" inherits="GameFontNormal" text="POSTAL_INBOX_OPENALLCONFIRMATION">
+					<Size>
+						<AbsDimension x="350" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="4"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="$parentOpenButton" hidden="false" inherits="GameMenuButtonTemplate" text="POSTAL_INBOX_OPENALL">
+				<Size>
+					<AbsDimension x="125" y="32"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOM">
+						<Offset>
+							<AbsDimension x="-8" y="16"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						Postal_Inbox_OpenSelected(1);
+						HideUIPanel(this:GetParent())
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="$parentCancelButton" hidden="false" inherits="GameMenuButtonTemplate" text="POSTAL_CANCELBUTTON">
+				<Size>
+					<AbsDimension x="125" y="32"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOM">
+						<Offset>
+							<AbsDimension x="8" y="16"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						HideUIPanel(this:GetParent())
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+	
+	<!-- Mail forwarding -->
+	<Button name="OpenMailForwardButton" parent="OpenMailFrame" inherits="UIPanelButtonTemplate" text="Forward">
+		<Size>
+			<AbsDimension x="82" y="22"/>
+		</Size>
+		<Anchors>
+			<Anchor point="RIGHT" relativeTo="OpenMailReplyButton" relativePoint="LEFT">
+				<Offset>
+					<AbsDimension x="0" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				Postal:OpenReply()
+			</OnClick>
+		</Scripts>
+	</Button>
+	<Frame name="PostalForwardFrame" parent="UIParent">
+		<Scripts>
+			<OnUpdate>
+				Postal:Forward_OnUpdate(arg1)
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+
+	<Frame name="PostalGlobalFrame" parent="UIParent" hidden="true">
+		<Scripts>
+			<OnUpdate>
+				Postal:ProcessQueue(arg1)
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+	<GameTooltip name="PostalTooltip" inherits="GameTooltipTemplate"></GameTooltip>
+</Ui>
