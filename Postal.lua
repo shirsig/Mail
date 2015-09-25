@@ -27,9 +27,9 @@ function Postal:OnInitialize()
 	Postal_BagLinks = {}
 	Postal_ScheduledStack = {}
 	Postal_SelectedItems = {}
-	Postal_PICKDELAY = 0.2
-	Postal_DELETEDELAY = 0.2
-	Postal_DELETEEVENTDELAY = 0.2
+	Postal_PICKDELAY = 1
+	Postal_DELETEDELAY = 1
+	Postal_DELETEEVENTDELAY = 1
 
 	PostalFrame.num = 0
 	PanelTemplates_SetNumTabs(MailFrame, 3)
