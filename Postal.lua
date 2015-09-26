@@ -71,6 +71,8 @@ function Postal:OnEnable()
 	oldTakeInboxMoney = OpenMailMoneyButton:GetScript("OnClick")
 end
 
+local open_all = false
+
 function Postal:MAIL_CLOSED()
 	Postal:ClearItems()
 	PostalGlobalFrame.total = 0
@@ -499,6 +501,25 @@ function Postal:TF_Show()
 end
 
 function Postal:Inbox_OnUpdate(elapsed)
+
+	if open_all then
+		local i = 1
+		local _, _, _, _, money, CODAmount, _, hasItem = GetInboxHeaderInfo(i)
+		while CODAmount and CODAmount > 0 do
+			i = i + 1
+			_, _, _, _, money, CODAmount, _, hasItem = GetInboxHeaderInfo(i)
+		end
+		if i > GetInboxNumItems() then
+			open_all = false
+		elseif hasItem then
+			self.hooks["TakeInboxItem"].orig(i)
+		elseif money > 0 then
+			TakeInboxMoney(i)
+		else
+			DeleteInboxItem(i)
+		end
+	end
+	
 	if Postal_addItem then
 		Postal_addItem[4] = Postal_addItem[4] - elapsed
 		if Postal_addItem[4] <= 0 then
@@ -634,24 +655,28 @@ function Postal_Inbox_SetSelected()
 end
 
 function Postal_Inbox_OpenSelected(openAll)
-	Postal:Inbox_DisableClicks(1)
-	PostalInboxFrame.num = 0
-	PostalInboxFrame.timeout = Postal_PICKDELAY
-	PostalInboxFrame.id = {}
-	PostalInboxFrame.openSelected = not openAll
 	if openAll then
-		for i = 1, GetInboxNumItems() do
-			PostalInboxFrame.num = PostalInboxFrame.num + 1
-			tinsert(PostalInboxFrame.id, i)
-		end
+		open_all = true
 	else
-		for k, v in Postal_SelectedItems do
-			PostalInboxFrame.num = PostalInboxFrame.num + 1
-			tinsert(PostalInboxFrame.id, v)
+		Postal:Inbox_DisableClicks(1)
+		PostalInboxFrame.num = 0
+		PostalInboxFrame.timeout = Postal_PICKDELAY
+		PostalInboxFrame.id = {}
+		PostalInboxFrame.openSelected = not openAll
+		if openAll then
+			for i = 1, GetInboxNumItems() do
+				PostalInboxFrame.num = PostalInboxFrame.num + 1
+				tinsert(PostalInboxFrame.id, i)
+			end
+		else
+			for k, v in Postal_SelectedItems do
+				PostalInboxFrame.num = PostalInboxFrame.num + 1
+				tinsert(PostalInboxFrame.id, v)
+			end
 		end
+		PostalInboxFrame.numMails = PostalInboxFrame.num
+		Postal_SelectedItems = {}
 	end
-	PostalInboxFrame.numMails = PostalInboxFrame.num
-	Postal_SelectedItems = {}
 end
 
 function Postal:InboxFrame_Update()
@@ -698,6 +723,7 @@ function Postal:InboxFrame_OnClick()
 end
 
 function Postal:Inbox_Abort()
+	open_all = nil
 	PostalInboxFrame.num = nil
 	PostalInboxFrame.timeout = nil
 	PostalInboxFrame.id = {}
