@@ -1,7 +1,6 @@
 Postal = AceLibrary("AceAddon-2.0"):new("AceEvent-2.0", "AceHook-2.0")
 
 function Postal:OnInitialize()
-	tinsert(UISpecialFrames, "PostalInboxOpenAll")
 
 	-- Allows the mail frame to be pushed
 	if UIPanelWindows["MailFrame"] then
@@ -729,7 +728,6 @@ function Postal:Inbox_Abort()
 	PostalInboxFrame.id = {}
 	Postal_SelectedItems = {}
 	Postal:Inbox_DisableClicks()
-	HideUIPanel(PostalInboxOpenAll)
 end
 
 function Postal:CloseMail()

@@ -808,103 +808,10 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Anchors>
 		<Scripts>
 			<OnClick>
-				ShowUIPanel(PostalInboxOpenAll)
+				Postal_Inbox_OpenSelected(true)
 			</OnClick>
 		</Scripts>
 	</Button>
-	<Frame name="PostalInboxOpenAll" toplevel="true" frameStrata="DIALOG" movable="true" enableMouse="true" hidden="true" parent="MailFrame">
-		<Size>
-			<AbsDimension x="400" y="100"/>
-		</Size>
-		<Anchors>
-			<Anchor point="CENTER" relativeTo="UIParent"/>
-		</Anchors>
-		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-			<BackgroundInsets>
-				<AbsInset left="11" right="12" top="12" bottom="11"/>
-			</BackgroundInsets>
-			<TileSize>
-				<AbsValue val="32"/>
-			</TileSize>
-			<EdgeSize>
-				<AbsValue val="32"/>
-			</EdgeSize>
-		</Backdrop>
-		<Layers>
-			<Layer level="ARTWORK">
-				<Texture name="$parentHeaderTexture" file="Interface\DialogFrame\UI-DialogBox-Header">
-					<Size>
-						<AbsDimension x="256" y="64"/>
-					</Size>
-					<Anchors>
-						<Anchor point="TOP">
-							<Offset>
-								<AbsDimension x="0" y="12"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-				</Texture>
-				<FontString inherits="GameFontNormal" text="POSTAL_INBOX_OPENALLTITLE">
-					<Anchors>
-						<Anchor point="TOP" relativeTo="$parentHeaderTexture">
-							<Offset>
-								<AbsDimension x="0" y="-14"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-				</FontString>
-				<FontString name="$parentInfo" justifyV="top" inherits="GameFontNormal" text="POSTAL_INBOX_OPENALLCONFIRMATION">
-					<Size>
-						<AbsDimension x="350" y="32"/>
-					</Size>
-					<Anchors>
-						<Anchor point="CENTER">
-							<Offset>
-								<AbsDimension x="0" y="4"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-				</FontString>
-			</Layer>
-		</Layers>
-		<Frames>
-			<Button name="$parentOpenButton" hidden="false" inherits="GameMenuButtonTemplate" text="POSTAL_INBOX_OPENALL">
-				<Size>
-					<AbsDimension x="125" y="32"/>
-				</Size>
-				<Anchors>
-					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOM">
-						<Offset>
-							<AbsDimension x="-8" y="16"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>
-						Postal_Inbox_OpenSelected(1);
-						HideUIPanel(this:GetParent())
-					</OnClick>
-				</Scripts>
-			</Button>
-			<Button name="$parentCancelButton" hidden="false" inherits="GameMenuButtonTemplate" text="POSTAL_CANCELBUTTON">
-				<Size>
-					<AbsDimension x="125" y="32"/>
-				</Size>
-				<Anchors>
-					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOM">
-						<Offset>
-							<AbsDimension x="8" y="16"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>
-						HideUIPanel(this:GetParent())
-					</OnClick>
-				</Scripts>
-			</Button>
-		</Frames>
-	</Frame>
 	
 	<!-- Mail forwarding -->
 	<Button name="OpenMailForwardButton" parent="OpenMailFrame" inherits="UIPanelButtonTemplate" text="Forward">
