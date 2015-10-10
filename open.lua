@@ -33,70 +33,41 @@ function process(selected, k)
 		return k()
 	else
 		local index = selected[1]
-		GetInboxText(index)
-		controller().wait(function() return GetInboxText(index) or not (({ GetInboxHeaderInfo })[11] or ({ GetInboxText(index) })[3]) end, function()
-		local _, _, _, _, money, CODAmount, _, hasItem = GetInboxHeaderInfo(index)
-		local bodyText, _, _, isInvoice = GetInboxText(index)
 		
-		if CODAmount > 0 then
+		local inbox_count = GetInboxNumItems()
+		open(index, inbox_count, function()
 			tremove(selected, 1)
+			for i, _ in selected do
+				selected[i] = selected[i] - 1
+			end
 			return process(selected, k)
-		end
-		
-		local inbox_count_before = GetInboxNumItems()
-		open(index, hasItem, money > 0, bodyText and not isInvoice, function()
-		controller().wait(function() return GetInboxNumItems() < inbox_count_before end, function()
-		tremove(selected, 1)
-		for i, _ in selected do
-			selected[i] = selected[i] - 1
-		end
-		return process(selected, k)
-		end)end)end)
+		end)
 	end
 end
 
-function open(i, has_item, has_money, has_message, k)
+function open(i, inbox_count, k)
 	wait_for_update(function()
-		if has_item then
+		local _, _, _, _, money, COD_amount, _, has_item = GetInboxHeaderInfo(i)
+		if GetInboxNumItems() < inbox_count or COD_amount > 0 then
+			return k()
+		elseif has_item then
 			local inventory_count_before = inventory_count()
 			TakeInboxItem(i)
 			controller().wait(function() return inventory_count() > inventory_count_before end, function()
-			return open(i, false, has_money, has_message, k)
+			return open(i, inbox_count, k)
 			end)
-		elseif has_money then
+		elseif money > 0 then
 			local money_before = GetMoney()
 			TakeInboxMoney(i)
 			controller().wait(function() return GetMoney() > money_before end, function()
-			return open(i, false, false, has_message, k)
+			return open(i, inbox_count, k)
 			end)
-		elseif has_message then
-			local _, _, _, _, money, _, _, hasItem = GetInboxHeaderInfo(i)
-			if not (money > 0) and not hasItem then
-				DeleteInboxItem(i)
-			end
-			return open(i, false, false, false, k)
 		else
-			return k()
-		end
-	end)
-end
-
-function open_alternative(i, k, inbox_count)
-	wait_for_update(function()
-		local _, _, _, _, money, CODAmount, _, has_item = GetInboxHeaderInfo(index)
-		if CODAmount > 0 then
-			return k()
-		elseif has_item then
-			TakeInboxItem(i)
-			open_alternative(i, k, inbox_count)
-		elseif money > 0 then
-			TakeInboxMoney(i)
-			open_alternative(i, k, inbox_count)
-		else
-			if GetInboxNumItems() == inbox_count then
-				DeleteInboxItem(i)
-			end
-			controller().wait(function() return GetInboxNumItems() < inbox_count end, k)
+			local inbox_count_before = GetInboxNumItems()
+			DeleteInboxItem(i)
+			controller().wait(function() return GetInboxNumItems() < inbox_count_before end, function()
+			return open(i, inbox_count, k)
+			end)
 		end
 	end)
 end
