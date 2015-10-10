@@ -135,6 +135,10 @@ function Postal.control.controller()
 		}
 	end
 	
+	function self.reset()
+		state = nil
+	end
+	
 	function self.cleanup()
 		listener.stop()
 	end

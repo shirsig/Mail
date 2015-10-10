@@ -15,14 +15,17 @@ function wait_for_update(k)
 end
 
 function Postal.open.start(selected, callback)
-	wait_for_update(function()
-	process(selected, function()
-	callback()
-	end)end)
+	Postal.control.on_next_update(function()
+		process(selected, function()
+		callback()
+		end)
+	end)
 end
 
 function Postal.open.stop()
-	wait_for_update(function() end)
+	Postal.control.on_next_update(function()
+		controller().reset()
+	end)
 end
 
 function process(selected, k)
@@ -35,7 +38,6 @@ function process(selected, k)
 		local _, _, _, _, money, CODAmount, _, hasItem = GetInboxHeaderInfo(index)
 		local bodyText, _, _, isInvoice = GetInboxText(index)
 		
-		snipe.log(bodyText)
 		if CODAmount > 0 then
 			tremove(selected, 1)
 			return process(selected, k)
@@ -75,6 +77,26 @@ function open(i, has_item, has_money, has_message, k)
 			return open(i, false, false, false, k)
 		else
 			return k()
+		end
+	end)
+end
+
+function open_alternative(i, k, inbox_count)
+	wait_for_update(function()
+		local _, _, _, _, money, CODAmount, _, has_item = GetInboxHeaderInfo(index)
+		if CODAmount > 0 then
+			return k()
+		elseif has_item then
+			TakeInboxItem(i)
+			open_alternative(i, k, inbox_count)
+		elseif money > 0 then
+			TakeInboxMoney(i)
+			open_alternative(i, k, inbox_count)
+		else
+			if GetInboxNumItems() == inbox_count then
+				DeleteInboxItem(i)
+			end
+			controller().wait(function() return GetInboxNumItems() < inbox_count end, k)
 		end
 	end)
 end
