@@ -211,7 +211,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 						this:HighlightText(0, 0)
 					</OnEditFocusLost>
 					<OnChar>
-						SendMailFrame_SendeeAutocomplete()
+						pcall(SendMailFrame_SendeeAutocomplete)
 					</OnChar>
 					<OnEnterPressed>
 						PostalSubjectEditBox:SetFocus()
