@@ -26,9 +26,7 @@ function Postal:OnInitialize()
 	Postal_BagLinks = {}
 	Postal_ScheduledStack = {}
 	Postal_SelectedItems = {}
-	Postal_PICKDELAY = 1
 	Postal_DELETEDELAY = 1
-	Postal_DELETEEVENTDELAY = 1
 
 	PostalFrame.num = 0
 	PanelTemplates_SetNumTabs(MailFrame, 3)
@@ -65,12 +63,9 @@ function Postal:OnEnable()
 	self:Hook("InboxFrame_OnClick")
 	self:Hook("InboxFrame_Update")
 	self:Hook("CloseMail")
-	self:Hook("TakeInboxItem")
 	self:Hook("OpenMail_Reply")
 	oldTakeInboxMoney = OpenMailMoneyButton:GetScript("OnClick")
 end
-
-local open_all = false
 
 function Postal:MAIL_CLOSED()
 	Postal:ClearItems()
@@ -426,21 +421,16 @@ end
 
 function Postal:ContainerFrame_Update(frame)
 	self.hooks["ContainerFrame_Update"].orig(frame)
-	local id = frame:GetID()
-	if PostalFrame:IsVisible() then
-		local i
-		for i = 1, POSTAL_NUMITEMBUTTONS do
-			local btn = getglobal("PostalButton" .. i)
-			if btn.item and btn.bag then
-				if btn.bag == frame:GetID() then
-					SetItemButtonDesaturated(getglobal(frame:GetName() .. "Item" .. (frame.size-btn.item)+1), 1, 0.5, 0.5, 0.5)
-				end
+	Postal.control.on_next_update(function() 
+		local name = frame:GetName()
+		for j=1, frame.size, 1 do
+			local itemButton = getglobal(name.."Item"..j)
+			local locked = self:GetItemFrame(itemButton:GetParent():GetID(), itemButton:GetID()) or (Postal_addItem and Postal_addItem[1] == itemButton:GetParent():GetID() and Postal_addItem[2] == itemButton:GetID())
+			if locked then
+				SetItemButtonDesaturated(itemButton, true, 0.5, 0.5, 0.5)
 			end
 		end
-	end
-	if Postal_addItem and Postal_addItem[1] == frame:GetID() then
-		SetItemButtonDesaturated(getglobal(frame:GetName() .. "Item" .. (frame.size-Postal_addItem[2])+1), 1, 0.5, 0.5, 0.5)
-	end
+	end)
 end
 
 function Postal:MAIL_SEND_INFO_UPDATE()
@@ -500,25 +490,6 @@ function Postal:TF_Show()
 end
 
 function Postal:Inbox_OnUpdate(elapsed)
-
-	if open_all then
-		local i = 1
-		local _, _, _, _, money, CODAmount, _, hasItem = GetInboxHeaderInfo(i)
-		while CODAmount and CODAmount > 0 do
-			i = i + 1
-			_, _, _, _, money, CODAmount, _, hasItem = GetInboxHeaderInfo(i)
-		end
-		if i > GetInboxNumItems() then
-			open_all = false
-		elseif hasItem then
-			self.hooks["TakeInboxItem"].orig(i)
-		elseif money > 0 then
-			TakeInboxMoney(i)
-		else
-			DeleteInboxItem(i)
-		end
-	end
-	
 	if Postal_addItem then
 		Postal_addItem[4] = Postal_addItem[4] - elapsed
 		if Postal_addItem[4] <= 0 then
@@ -530,55 +501,9 @@ function Postal:Inbox_OnUpdate(elapsed)
 			end
 		end
 	end
-	if this.num and this.timeout then
-		this.timeout = this.timeout - elapsed
-		if this.timeout <= 0 then
-			this.timeout = nil
-			if this.id[1] then
-				local val = this.id[1]
-				local success = Postal:PickMail(val, this.openSelected)
-				if success ~= 2 then
-					tremove(this.id, 1)
-					this.num = this.num - 1
-				end
-				if success == 1 then
-					for key, va in this.id do
-						if va > val then
-							this.id[key] = va - 1
-						end
-					end
-					this.lastVal = val
-					InboxFrame_Update()
-				else
-					this.timeout = Postal_PICKDELAY
-					this.lastVal = nil
-				end
-				if this.num == 0 then
-					this.num = nil
-					Postal:Inbox_DisableClicks(nil)
-				end
-			end
-		end
-	end
-	if this.delete then
-		this.delete[1] = this.delete[1] - elapsed
-		if this.delete[1] <= 0 then
-			local _, _, _, _, money, _, _, itemID, _, _, _  = GetInboxHeaderInfo(this.delete[2])
-			if money == 0 and not itemID then
-				GetInboxText(this.delete[2])
-				DeleteInboxItem(this.delete[2])
-			end
-			this.delete = nil
-			this.timeout = Postal_PICKDELAY
-		end
-	end
 end
 
 function Postal:MAIL_INBOX_UPDATE()
-	if PostalInboxFrame.eventDelete then
-		PostalInboxFrame.delete = { Postal_DELETEEVENTDELAY, PostalInboxFrame.eventDelete }
-		PostalInboxFrame.eventDelete = nil
-	end
 end
 
 function Postal:UI_ERROR_MESSAGE()
@@ -606,38 +531,7 @@ function Postal:Print(msg, r, g, b)
 	DEFAULT_CHAT_FRAME:AddMessage(msg, r, g, b)
 end
 
-function Postal:PickMail(id, openSelected)
-	if not id then
-		return 0
-	end
-	local _, _, sender, subject, money, CODAmount, _, hasItem = GetInboxHeaderInfo(id)
-	if CODAmount > 0 then
-		Postal:Print("Postal: Mail |c00FFFFFF" .. this.numMails - (this.num - 1) .. "|r/|c00FFFFFF" .. this.numMails .. "|r is Cash on Delivery, skipping.", 1, 0, 0)
-		return 0
-	elseif not hasItem and money == 0 and not openSelected then
-		Postal:Print("Postal: Mail |c00FFFFFF" .. this.numMails - (this.num - 1) .. "|r/|c00FFFFFF" .. this.numMails .. "|r has no money or items, skipping.", 1, 1, 0)
-		return 0
-	end
-	Postal:Print("Postal: Opening mail |c00FFFFFF" .. this.numMails - (this.num - 1) .. "|r/|c00FFFFFF" .. this.numMails .. "|r: \"|c00FFFFFF" .. ( subject or "<No Subject>" ) .. "|r\" from |c00FFFFFF" .. ( sender or "<Unknown Sender>" ) .. "|r.", 1, 1, 0)
-	local eventDelete
-	if hasItem then
-		self.hooks["TakeInboxItem"].orig(id)
-		eventDelete = 1
-		if money > 0 then
-			return 2
-		end
-	end
-	if money > 0 then
-		TakeInboxMoney(id)
-		eventDelete = 1
-	end
-	if eventDelete then
-		PostalInboxFrame.eventDelete = id
-	else
-		PostalInboxFrame.delete = { Postal_DELETEDELAY, id }
-	end
-	return 1
-end
+
 
 function Postal_Inbox_SetSelected()
 	local id = this:GetID() + (InboxFrame.pageNum - 1) * 7
@@ -653,29 +547,24 @@ function Postal_Inbox_SetSelected()
 	end
 end
 
-function Postal_Inbox_OpenSelected(openAll)
-	if openAll then
-		open_all = true
-	else
-		Postal:Inbox_DisableClicks(1)
-		PostalInboxFrame.num = 0
-		PostalInboxFrame.timeout = Postal_PICKDELAY
-		PostalInboxFrame.id = {}
-		PostalInboxFrame.openSelected = not openAll
-		if openAll then
-			for i = 1, GetInboxNumItems() do
-				PostalInboxFrame.num = PostalInboxFrame.num + 1
-				tinsert(PostalInboxFrame.id, i)
-			end
-		else
-			for k, v in Postal_SelectedItems do
-				PostalInboxFrame.num = PostalInboxFrame.num + 1
-				tinsert(PostalInboxFrame.id, v)
-			end
+function Postal_Inbox_OpenSelected(open_all)
+	local selected = {}
+	if open_all then
+		for i = 1, GetInboxNumItems() do
+			tinsert(selected, i)
 		end
-		PostalInboxFrame.numMails = PostalInboxFrame.num
-		Postal_SelectedItems = {}
+	else
+		for _, i in Postal_SelectedItems do
+			tinsert(selected, i)
+		end
 	end
+	-- Postal:Inbox_DisableClicks(true)
+	-- PostalInboxFrame.num = true -- TODO remove
+	Postal.open.start(selected, function()
+		Postal:Inbox_DisableClicks(false)
+		PostalInboxFrame.num = false
+	end)
+	Postal_SelectedItems = {}
 end
 
 function Postal:InboxFrame_Update()
@@ -722,7 +611,7 @@ function Postal:InboxFrame_OnClick()
 end
 
 function Postal:Inbox_Abort()
-	open_all = nil
+	Postal.open.stop()
 	PostalInboxFrame.num = nil
 	PostalInboxFrame.timeout = nil
 	PostalInboxFrame.id = {}
@@ -735,11 +624,11 @@ function Postal:CloseMail()
 	Postal:Inbox_Abort()
 end
 
-function Postal:TakeInboxItem(id)
-	self.hooks["TakeInboxItem"].orig(id)
-	local name = GetInboxItem(id)
-	tinsert(PostalForwardFrame.pickItem, name)
-end
+-- function Postal:TakeInboxItem(id)
+	-- TakeInboxItem(id)
+	-- local name = GetInboxItem(id)
+	-- tinsert(PostalForwardFrame.pickItem, name)
+-- end
 
 -- Mail Forwarding
 function Postal:DisableAttachments(disable)
@@ -814,7 +703,7 @@ function Postal:SendMailMailButton_OnClick()
 	if name then
 		PostalForwardFrame.searchItem = name
 		PostalForwardFrame.forwardStep = 1
-		self.hooks["TakeInboxItem"].orig(InboxFrame.openMailID)
+		TakeInboxItem(InboxFrame.openMailID)
 	else
 		PostalForwardFrame.forwardStep = 2
 		if money and money > 0 then
