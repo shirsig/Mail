@@ -55,6 +55,7 @@ function Postal:OnEnable()
 
 	self:Hook("ContainerFrameItemButton_OnClick")
 	self:Hook("PickupContainerItem")
+	self:Hook("UseContainerItem")
 	self:Hook("ContainerFrame_Update")
 	self:Hook("ClickSendMailItemButton")
 	self:HookScript(TradeFrame, "OnShow", "TF_Show")
@@ -110,7 +111,19 @@ function Postal:PickupContainerItem(bag, item, special)
 		PostalFrame.bag = bag
 		PostalFrame.item = item
 	end
-	if IsAltKeyDown() and PostalFrame:IsVisible() and not CursorHasItem() then
+	self.hooks["PickupContainerItem"].orig(bag, item)
+	self:UpdateItemButtons()
+end
+
+function Postal:UseContainerItem(bag, item)
+	if self:GetItemFrame(bag, item) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == item) then
+		return
+	end
+	if not CursorHasItem() then
+		PostalFrame.bag = bag
+		PostalFrame.item = item
+	end
+	if arg1 == 'RightButton' and PostalFrame:IsVisible() and not CursorHasItem() then
 		local i
 		for i = 1, POSTAL_NUMITEMBUTTONS do
 			if not getglobal("PostalButton" .. i).item then
@@ -126,11 +139,11 @@ function Postal:PickupContainerItem(bag, item, special)
 				return
 			end
 		end
-	elseif IsAltKeyDown() and SendMailFrame:IsVisible() and not CursorHasItem() then
+	elseif arg1 == 'RightButton' and SendMailFrame:IsVisible() and not CursorHasItem() then
 		self.hooks["PickupContainerItem"].orig(bag, item)
 		ClickSendMailItemButton()
 		return
-	elseif IsAltKeyDown() and TradeFrame:IsVisible() and not CursorHasItem() then
+	elseif arg1 == 'RightButton' and TradeFrame:IsVisible() and not CursorHasItem() then
 		for i = 1, 6 do
 			if not GetTradePlayerItemLink(i) then
 				self.hooks["PickupContainerItem"].orig(bag, item)
@@ -138,7 +151,7 @@ function Postal:PickupContainerItem(bag, item, special)
 				return
 			end
 		end
-	elseif IsAltKeyDown() and not CursorHasItem() and (not TradeFrame or not TradeFrame:IsVisible()) and (not AuctionFrame or not AuctionFrame:IsVisible()) and UnitExists("target") and CheckInteractDistance("target", 2) and UnitIsFriend("player", "target") and UnitIsPlayer("target") then
+	elseif arg1 == 'RightButton' and not CursorHasItem() and (not TradeFrame or not TradeFrame:IsVisible()) and (not AuctionFrame or not AuctionFrame:IsVisible()) and UnitExists("target") and CheckInteractDistance("target", 2) and UnitIsFriend("player", "target") and UnitIsPlayer("target") then
 		InitiateTrade("target")
 		Postal_addItem = { bag, item, UnitName("target"), 2 }
 		for i = 1, NUM_CONTAINER_FRAMES do
@@ -148,7 +161,7 @@ function Postal:PickupContainerItem(bag, item, special)
 		end
 		return
 	end
-	self.hooks["PickupContainerItem"].orig(bag, item)
+	self.hooks["UseContainerItem"].orig(bag, item)
 	self:UpdateItemButtons()
 end
 

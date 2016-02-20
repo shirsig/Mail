@@ -1,6 +1,6 @@
 Postal.open = {}
 
-local wait_for_update, open, process, inventory_count
+local wait_for_update, open, process, inventory_count, stop
 
 local controller = (function()
 	local controller
@@ -15,17 +15,15 @@ function wait_for_update(k)
 end
 
 function Postal.open.start(selected, callback)
-	Postal.control.on_next_update(function()
+	controller().wait(function()
 		process(selected, function()
-		callback()
+			callback()
 		end)
 	end)
 end
 
 function Postal.open.stop()
-	Postal.control.on_next_update(function()
-		controller().reset()
-	end)
+	controller().wait(function() end)
 end
 
 function process(selected, k)
