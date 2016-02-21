@@ -33,10 +33,12 @@ function process(selected, k)
 		local index = selected[1]
 		
 		local inbox_count = GetInboxNumItems()
-		open(index, inbox_count, function()
+		open(index, inbox_count, function(skipped)
 			tremove(selected, 1)
-			for i, _ in selected do
-				selected[i] = selected[i] - 1
+			if not skipped then
+				for i, _ in ipairs(selected) do
+					selected[i] = selected[i] - 1
+				end
 			end
 			return process(selected, k)
 		end)
@@ -47,24 +49,24 @@ function open(i, inbox_count, k)
 	wait_for_update(function()
 		local _, _, _, _, money, COD_amount, _, has_item = GetInboxHeaderInfo(i)
 		if GetInboxNumItems() < inbox_count or COD_amount > 0 then
-			return k()
+			return k(COD_amount > 0)
 		elseif has_item then
 			local inventory_count_before = inventory_count()
 			TakeInboxItem(i)
 			controller().wait(function() return inventory_count() > inventory_count_before end, function()
-			return open(i, inbox_count, k)
+				return open(i, inbox_count, k)
 			end)
 		elseif money > 0 then
 			local money_before = GetMoney()
 			TakeInboxMoney(i)
 			controller().wait(function() return GetMoney() > money_before end, function()
-			return open(i, inbox_count, k)
+				return open(i, inbox_count, k)
 			end)
 		else
 			local inbox_count_before = GetInboxNumItems()
 			DeleteInboxItem(i)
 			controller().wait(function() return GetInboxNumItems() < inbox_count_before end, function()
-			return open(i, inbox_count, k)
+				return open(i, inbox_count, k)
 			end)
 		end
 	end)

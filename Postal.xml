@@ -213,64 +213,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<Size>
 			<AbsDimension x="384" y="512"/>
 		</Size>
-		<Anchors>
-			<Anchor point="TOPLEFT"/>
-		</Anchors>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<FontString name="PostalTitleText" inherits="GameFontNormal" text="POSTAL_SEND">
-					<Size>
-						<AbsDimension x="224" y="14"/>
-					</Size>
-					<Anchors>
-						<Anchor point="CENTER">
-							<Offset>
-								<AbsDimension x="6" y="230"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-				</FontString>
-				<FontString justifyH="left" justifyV="top" name="PostalHelpText" inherits="GameFontNormal" text="POSTAL_HELP">
-					<Size>
-						<AbsDimension x="300" y="150"/>
-					</Size>
-					<Anchors>
-						<Anchor point="TOPLEFT">
-							<Offset>
-								<AbsDimension x="30" y="-105"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-				</FontString>
-			</Layer>
-		</Layers>
-		<Frames>
-			<Button name="PostalAbortButton" hidden="true" inherits="UIPanelButtonTemplate" text="POSTAL_ABORT">
-				<Size>
-					<AbsDimension x="80" y="22"/>
-				</Size>
-				<Anchors>
-					<Anchor point="BOTTOM" relativePoint="BOTTOM">
-						<Offset>
-							<AbsDimension x="0" y="105"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>
-						PostalStatusText:SetText(format(POSTAL_ABORTED, PostalGlobalFrame.total-(getn(PostalGlobalFrame.queue)-1), PostalGlobalFrame.total));
-						PostalGlobalFrame.queue = { };
-						PostalGlobalFrame.total = 0;
-						PostalGlobalFrame:Hide();
-					</OnClick>
-				</Scripts>
-			</Button>
-		</Frames>
-		<Scripts>
-			<OnShow>
-				PostalNameEditBox:SetFocus()
-			</OnShow>
-		</Scripts>
 	</Frame>
 
 	<Frame name="PostalInboxFrame" parent="UIParent">
@@ -342,32 +284,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Scripts>
 	</Button>
 	
-	<!-- Mail forwarding -->
-	<Button name="OpenMailForwardButton" parent="OpenMailFrame" inherits="UIPanelButtonTemplate" text="Forward">
-		<Size>
-			<AbsDimension x="82" y="22"/>
-		</Size>
-		<Anchors>
-			<Anchor point="RIGHT" relativeTo="OpenMailReplyButton" relativePoint="LEFT">
-				<Offset>
-					<AbsDimension x="0" y="0"/>
-				</Offset>
-			</Anchor>
-		</Anchors>
-		<Scripts>
-			<OnClick>
-				Postal:OpenReply()
-			</OnClick>
-		</Scripts>
-	</Button>
-	<Frame name="PostalForwardFrame" parent="UIParent">
-		<Scripts>
-			<OnUpdate>
-				Postal:Forward_OnUpdate(arg1)
-			</OnUpdate>
-		</Scripts>
-	</Frame>
-
 	<Frame name="PostalGlobalFrame" parent="UIParent" hidden="true">
 		<Scripts>
 			<OnUpdate>

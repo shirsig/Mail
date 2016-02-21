@@ -28,9 +28,6 @@ function Postal:OnInitialize()
 	Postal_SelectedItems = {}
 	Postal_DELETEDELAY = 1
 
-	PostalForwardFrame.pickItem = {}
-	PostalForwardFrame.process = 0
-
 	PostalGlobalFrame.queue = {}
 	PostalGlobalFrame.total = 0
 	PostalGlobalFrame.sendmail = 0
@@ -177,7 +174,6 @@ function Postal:OnEnable()
 	self:RegisterEvent("UI_ERROR_MESSAGE")
 	self:RegisterEvent("MAIL_SEND_SUCCESS")
 	self:RegisterEvent("MAIL_CLOSED")
-	self:RegisterEvent("BAG_UPDATE")
 
 	self:Hook("ContainerFrameItemButton_OnClick")
 	self:Hook("PickupContainerItem")
@@ -188,10 +184,8 @@ function Postal:OnEnable()
 	self:Hook("ClickSendMailItemButton")
 	self:HookScript(TradeFrame, "OnShow", "TF_Show")
 	self:Hook("InboxFrameItem_OnEnter")
-	self:Hook("InboxFrame_OnClick")
 	self:Hook("InboxFrame_Update")
 	self:Hook("CloseMail")
-	self:Hook("OpenMail_Reply")
 	oldTakeInboxMoney = OpenMailMoneyButton:GetScript("OnClick")
 
 	-- NEW
@@ -700,7 +694,6 @@ function Postal:Print(msg, r, g, b)
 	DEFAULT_CHAT_FRAME:AddMessage(msg, r, g, b)
 end
 
-
 function Postal_Inbox_SetSelected()
 	local id = this:GetID() + (InboxFrame.pageNum - 1) * 7
 	if not this:GetChecked() then
@@ -792,255 +785,26 @@ function Postal:CloseMail()
 	Postal:Inbox_Abort()
 end
 
--- function Postal:TakeInboxItem(id)
-	-- TakeInboxItem(id)
-	-- local name = GetInboxItem(id)
-	-- tinsert(PostalForwardFrame.pickItem, name)
--- end
-
--- Mail Forwarding
-function Postal:DisableAttachments(disable)
-	if disable then
-		OpenMailMoneyButtonIconTexture:SetDesaturated(1)
-		OpenMailPackageButtonIconTexture:SetDesaturated(1)
-		if not self:IsHooked(OpenMailMoneyButton, "OnClick") then self:HookScript(OpenMailMoneyButton, "OnClick", "DummyFunction") end
-		if not self:IsHooked(OpenMailPackageButton, "OnClick") then self:HookScript(OpenMailPackageButton, "OnClick", "DummyFunction") end
-	else
-		OpenMailMoneyButtonIconTexture:SetDesaturated(nil)
-		OpenMailPackageButtonIconTexture:SetDesaturated(nil)
-		if self:IsHooked(OpenMailMoneyButton, "OnClick") then self:Unhook(OpenMailMoneyButton, "OnClick") end
-		if self:IsHooked(OpenMailPackageButton, "OnClick") then self:Unhook(OpenMailPackageButton, "OnClick") end
-	end
-end
-
 function Postal:DummyFunction()
 end
 
-function Postal:OpenMail_Reply()
-	self.hooks["OpenMail_Reply"].orig()
-	SendMailMoneyCopper:SetText("")
-	SendMailMoneySilver:SetText("")
-	SendMailMoneyGold:SetText("")
-end
-
-function Postal:OpenReply()
-	OpenMail_Reply()
-	local _, _, _, subject, money = GetInboxHeaderInfo(InboxFrame.openMailID)
-	
-	-- Money
-	local gold, silver, copper = "", "", ""
-	if money and money > 0 then
-		gold = floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD))
-		silver = floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER)
-		copper = mod(money, COPPER_PER_SILVER)
-	end
-	SendMailMoneyCopper:SetText(copper)
-	SendMailMoneySilver:SetText(silver)
-	SendMailMoneyGold:SetText(gold)
-	
-	-- Items
-	local _, itemTexture, count = GetInboxItem(InboxFrame.openMailID)
-	SendMailPackageButton:SetNormalTexture(itemTexture)
-	if count > 1 then
-		SendMailPackageButtonCount:SetText(count)
-	else
-		SendMailPackageButtonCount:SetText("")
-	end
-	
-	-- Text fields
-	SendMailNameEditBox:SetText("")
-	local subject = OpenMailSubject:GetText()
-	local prefix = "FW:".." "
-	if strsub(subject, 1, strlen(prefix)) ~= prefix then
-		subject = prefix..subject
-	end
-	PostalSubjectEditBox:SetText(subject or "")
-	SendMailBodyEditBox:SetText(string.gsub(OpenMailBodyText:GetText() or "", "\n", "\n>"))
-	SendMailNameEditBox:SetFocus()
-	
-	-- self:Forward_EnableForward(1)
-end
-
-function Postal:PostalMailButton_OnClick()
-	local name = GetInboxItem(InboxFrame.openMailID)
-	local _, _, _, _, money = GetInboxHeaderInfo(InboxFrame.openMailID)
-	if name then
-		PostalForwardFrame.searchItem = name
-		PostalForwardFrame.forwardStep = 1
-		TakeInboxItem(InboxFrame.openMailID)
-	else
-		PostalForwardFrame.forwardStep = 2
-		if money and money > 0 then
-			SetSendMailMoney(money)
-			PostalForwardFrame.countDown = 2
-			oldTakeInboxMoney(InboxFrame.openMailID)
-		else
-			PostalForwardFrame.countDown = 0.5
-		end
-	end
-	PostalMailButton:Disable()
-end
-
-function Postal:Forward_OnUpdate(elapsed)
-	if this.forwardStep and this.forwardStep > 1 then
-		if this.countDown then
-			this.countDown = this.countDown - elapsed
-			if this.countDown <= 0 then
-				if this.forwardStep == 2 then
-					this.countDown = 0.5
-					this.forwardStep = 3
-					-- Send the mail
-					SendMail(SendMailNameEditBox:GetText(), PostalSubjectEditBox:GetText(), SendMailBodyEditBox:GetText())
-					PostalMailButton:Disable()
-				elseif this.forwardStep == 3 then
-					-- Delete the old one
-					local _, _, _, _, money, _, _, itemID = GetInboxHeaderInfo(InboxFrame.openMailID)
-					if money == 0 and not itemID then
-						DeleteInboxItem(InboxFrame.openMailID)
-					end
-					MailFrameTab_OnClick(1)
-					HideUIPanel(OpenMailFrame)
-					this.countDown = nil
-					this.forwardStep = nil
-				end
-			end
-		end
-	end
-	this.process = this.process - elapsed
-	if this.process <= 0 then
-		this.process = 3
-		if getn(Postal_ScheduledStack) > 0 then
-			self:ProcessStack()
-		end
-	end
-end
-
-function Postal:InboxFrame_OnClick(id)
-	self.hooks["InboxFrame_OnClick"].orig(id)
-	local _, _, _, _, _, CODAmount = GetInboxHeaderInfo(id)
-	if CODAmount and CODAmount > 0 then
-		OpenMailForwardButton:Disable()
-	else
-		OpenMailForwardButton:Enable()
-	end
-end
-
-function Postal:Forward_EnableForward(enable)
-	if enable then
-		OpenMailForwardButton:Disable()
-		if not self:IsHooked(SendMailPackageButton, "OnEnter") then self:HookScript(SendMailPackageButton, "OnEnter", "SMPBOE") end
-		SendMailCODButton:Disable()
-		self:DisableAttachments(1)
-		if not self:IsHooked("SendMailMailButton_OnClick") then self:Hook("SendMailMailButton_OnClick") end
-		if not self:IsHooked("SendMailPackageButton_OnClick") then self:Hook("SendMailPackageButton_OnClick") end
-	else
-		OpenMailForwardButton:Enable()
-		if self:IsHooked(SendMailPackageButton, "OnEnter") then self:Unhook(SendMailPackageButton, "OnEnter") end
-		SendMailCODButton:Enable()
-		self:DisableAttachments(nil)
-		if self:IsHooked("SendMailMailButton_OnClick") then self:Unhook("SendMailMailButton_OnClick") end
-		if self:IsHooked("SendMailPackageButton_OnClick") then self:Unhook("SendMailPackageButton_OnClick") end
-	end
-end
-
-function Postal:SMPBOE()
-	GameTooltip:SetOwner(SendMailPackageButton, "ANCHOR_RIGHT")
-	GameTooltip:SetInboxItem(InboxFrame.openMailID) 
-end
-
-function Postal:SendMailPackageButton_OnClick()
-end
-
-function Postal:Forward_AttachSlot(container, slot)
-	PickupContainerItem(container, slot)
-	ClickSendMailItemButton()
-	PostalForwardFrame.searchItem = nil
-	PostalForwardFrame.forwardStep = 2
-	PostalForwardFrame.countDown = 1.5
-end
-
-function Postal:BAG_UPDATE()
-	local old = {}
-	for k, v in Postal_BagLinks do
-		if type(v) == "table" then
-			old[k] = { }
-			for key, val in v do
-				old[k][key] = val
-			end
-		end
-	end
-	Postal_BagLinks = {}
-	for i = 0, 4 do
-		Postal_BagLinks[i] = {}
-		for y = 1, GetContainerNumSlots(i) do
-			local curr = GetContainerItemLink(i, y)
-			local _, _, name = string.find(( curr or "" ), "%[(.+)%]")
-			if name then
-				if PostalForwardFrame.searchItem then
-					if name and name == PostalForwardFrame.searchItem and not old[i][y] then
-						self:Forward_AttachSlot(i, y)
-					end
-				else
-					local _, _, name = string.find(( curr or "" ), "%[(.+)%]")
-					if name and name == PostalForwardFrame.pickItem[1] and not old[i][y] then
-						tremove(PostalForwardFrame.pickItem, 1)
-						for k, v in old do
-							local hasFound
-							for key, val in v do
-								if val == name and ( k ~= i or key ~= y ) then
-									local _,_, link = string.find((GetContainerItemLink(k, key) or ""), "(item:[%d:]+)")
-									if link then
-										local texture, itemCount = GetContainerItemInfo(k,key)
-										local tex, iC = GetContainerItemInfo(i, y)
-										local sName, sLink, iQuality, iLevel, sType, sSubType, iCount = GetItemInfo(link)
-										if sName and itemCount and iCount and iC then
-											if iCount >= (itemCount+iC) then
-												if getn(Postal_ScheduledStack) == 0 then
-													PostalForwardFrame.process = 2
-												end
-												tinsert(Postal_ScheduledStack, { i, y, k, key })
-												hasFound = 1
-												break
-											end
-										end
-									end
-								end
-							end
-							if hasFound then
-								break
-							end
-						end
-					end
-				end
-				Postal_BagLinks[i][y] = name
-			end
-		end
-	end
-end
-
-function Postal:ProcessStack()
-	local val = tremove(Postal_ScheduledStack, 1)
-	PickupContainerItem(val[1], val[2])
-	PickupContainerItem(val[3], val[4])
-end
-
-local oldSMMFfunc = SendMailMoneyFrame.onvalueChangedFunc
-SendMailMoneyFrame.onvalueChangedFunc = function()
-	if oldSMMFfunc then
-		oldSMMFfunc()
-	end
-	local subject = PostalSubjectEditBox:GetText()
-	if subject == "" or string.find(subject, "%[%d+G, %d+S, %d+C%]") then
-		local copper, silver, gold = SendMailMoneyFrameCopper:GetText(), SendMailMoneyFrameSilver:GetText(), SendMailMoneyFrameGold:GetText()
-		if not tonumber(copper) then
-			copper = 0
-		end
-		if not tonumber(silver) then
-			silver = 0
-		end
-		if not tonumber(gold) then
-			gold = 0
-		end
-		PostalSubjectEditBox:SetText(format("[%sG, %sS, %sC]", gold, silver, copper))
-	end
-end
+-- local oldSMMFfunc = SendMailMoneyFrame.onvalueChangedFunc
+-- SendMailMoneyFrame.onvalueChangedFunc = function()
+-- 	if oldSMMFfunc then
+-- 		oldSMMFfunc()
+-- 	end
+-- 	local subject = PostalSubjectEditBox:GetText()
+-- 	if subject == "" or string.find(subject, "%[%d+G, %d+S, %d+C%]") then
+-- 		local copper, silver, gold = SendMailMoneyFrameCopper:GetText(), SendMailMoneyFrameSilver:GetText(), SendMailMoneyFrameGold:GetText()
+-- 		if not tonumber(copper) then
+-- 			copper = 0
+-- 		end
+-- 		if not tonumber(silver) then
+-- 			silver = 0
+-- 		end
+-- 		if not tonumber(gold) then
+-- 			gold = 0
+-- 		end
+-- 		PostalSubjectEditBox:SetText(format("[%sG, %sS, %sC]", gold, silver, copper))
+-- 	end
+-- end
