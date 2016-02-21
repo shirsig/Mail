@@ -243,6 +243,7 @@ function Postal:OnEnable()
 	-- hack to avoid automatic subject setting/button enabling
 	SendMailMailButton:Hide()
 	SendMailSubjectEditBox:Hide()
+	SendMailSubjectEditBox.SetText = function(self, text) PostalSubjectEditBox:SetText(text) end
 	SendMailNameEditBox:SetScript('OnTabPressed', function()
 		PostalSubjectEditBox:SetFocus()
 	end)
@@ -534,18 +535,6 @@ function Postal:SendMail()
 			subject = subject..format(' (Part %d of %d)', this.total - getn(this.queue), this.total)
 		end
 
-		if this.first then
-			this.first = false
-
-			if this.money then
-				if this.cod then
-					SetSendMailCOD(this.money)
-				else
-					SetSendMailMoney(this.money)
-				end
-			end
-		end
-
 		if item then
 			if GetSendMailItem() and PostalFrame.mailbag and PostalFrame.mailitem then
 				-- There's already an item in the slot
@@ -568,6 +557,18 @@ function Postal:SendMail()
 			if not name then 
 				Postal:Print("Postal: " .. POSTAL_ERROR, 1, 0, 0)
 				return
+			end
+		end
+
+		if this.first then
+			this.first = false
+
+			if this.money then
+				if this.cod then
+					SetSendMailCOD(this.money)
+				else
+					SetSendMailMoney(this.money)
+				end
 			end
 		end
 
