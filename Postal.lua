@@ -66,6 +66,10 @@ function Postal:OnEnable()
 	self:Hook("CloseMail")
 	self:Hook("OpenMail_Reply")
 	oldTakeInboxMoney = OpenMailMoneyButton:GetScript("OnClick")
+
+	SendMailScrollFrame:SetHeight(200)
+	StationeryBackgroundLeft:SetHeight(200)
+	StationeryBackgroundRight:SetHeight(200)
 end
 
 function Postal:MAIL_CLOSED()
