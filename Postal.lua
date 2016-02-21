@@ -45,6 +45,151 @@ function Postal:OnInitialize()
 	PostalInboxFrame.eventFunc = {}
 end
 
+function Postal:SendMailFrame_Update()
+	do
+		local background = ({SendMailPackageButton:GetRegions()})[1]
+		background:Hide()
+		local count = ({SendMailPackageButton:GetRegions()})[3]
+		count:Hide()
+		SendMailPackageButton:Disable()
+		SendMailPackageButton:SetScript('OnReceiveDrag', nil)
+		SendMailPackageButton:SetScript('OnDragStart', nil)
+	end
+
+	do
+		SendMailMoneyText:SetPoint('TOPLEFT', 0, -2)
+		SendMailMoney:ClearAllPoints()
+		SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -3)
+		SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
+	end
+
+	SendMailMailButton:SetScript('OnClick', function()
+		PostalGlobalFrame.queue = Postal:FillItemTable();
+		PostalGlobalFrame.total = getn(PostalGlobalFrame.queue);
+		Postal:ClearItems();
+		PostalGlobalFrame:Show();
+		this:GetParent():Hide();
+		POSTAL_CANSENDNEXT = 1
+	end)
+
+	ATTACHMENTS_PER_ROW_SEND = 7
+	ATTACHMENTS_MAX_SEND = 21
+	ATTACHMENTS_MAX = 21
+	ATTACHMENTS_MAX_ROWS_SEND = 3
+
+	local itemCount = 0
+	local itemTitle
+	local gap
+	-- local last = 0
+	local last = self:GetNumMails()
+	for i=1, ATTACHMENTS_MAX_SEND do
+		-- -- get info about the attachment
+		-- local itemName, itemTexture, stackCount, quality = GetSendMailItem(i)
+		-- -- set attachment texture info
+		-- _G["PostalAttachment"..i]:SetNormalTexture(itemTexture)
+		-- -- set the stack count
+		-- if ( stackCount <= 1 ) then
+		-- 	_G["PostalAttachment"..i.."Count"]:SetText("")
+		-- else
+		-- 	_G["PostalAttachment"..i.."Count"]:SetText(stackCount)
+		-- end
+
+		-- local attachmentButton = _G["PostalAttachment"..i]
+
+		-- SetItemButtonQuality(attachmentButton, quality, GetSendMailItemLink(i))
+		
+		-- -- determine what a name for the message in case it doesn't already have one
+		-- if ( itemName ) then
+		-- 	itemCount = itemCount + 1
+		-- 	if ( not itemTitle ) then
+		-- 		if ( stackCount <= 1 ) then
+		-- 			itemTitle = itemName
+		-- 		else
+		-- 			itemTitle = itemName.." ("..stackCount..")"
+		-- 		end
+		-- 	end
+		-- 	if ((last + 1) ~= i) then
+		-- 		gap = 1
+		-- 	end
+		-- 	last = i
+		-- end
+	end
+
+	-- Determine how many rows of attachments to show
+	local itemRowCount = 1
+	local temp = last
+	while temp > ATTACHMENTS_PER_ROW_SEND and itemRowCount < ATTACHMENTS_MAX_ROWS_SEND do
+		itemRowCount = itemRowCount + 1;
+		temp = temp - ATTACHMENTS_PER_ROW_SEND
+	end
+	Aux.log(itemRowCount)
+	if not gap and temp == ATTACHMENTS_PER_ROW_SEND and itemRowCount < ATTACHMENTS_MAX_ROWS_SEND then
+		itemRowCount = itemRowCount + 1;
+	end
+	if SendMailFrame.maxRowsShown and last > 0 and itemRowCount < SendMailFrame.maxRowsShown then
+		itemRowCount = SendMailFrame.maxRowsShown
+	else
+		SendMailFrame.maxRowsShown = itemRowCount
+	end
+
+	-- Compute sizes
+	local cursorx = 0
+	local cursory = itemRowCount - 1
+	local marginxl = 8 + 6
+	local marginxr = 40 + 6
+	local areax = SendMailFrame:GetWidth() - marginxl - marginxr
+	local iconx = PostalAttachment1:GetWidth() + 2
+	local icony = PostalAttachment1:GetHeight() + 2
+	local gapx1 = floor((areax - (iconx * ATTACHMENTS_PER_ROW_SEND)) / (ATTACHMENTS_PER_ROW_SEND - 1))
+	local gapx2 = floor((areax - (iconx * ATTACHMENTS_PER_ROW_SEND) - (gapx1 * (ATTACHMENTS_PER_ROW_SEND - 1))) / 2)
+	local gapy1 = 5
+	local gapy2 = 6
+	local areay = (gapy2 * 2) + (gapy1 * (itemRowCount - 1)) + (icony * itemRowCount)
+	local indentx = marginxl + gapx2 + 17
+	local indenty = 170 + gapy2 + icony - 13
+	local tabx = (iconx + gapx1) - 3 --this magic number changes the attachment spacing
+	local taby = (icony + gapy1)
+	local scrollHeight = 249 - areay
+
+
+	PostalHorizontalBarLeft:SetPoint('TOPLEFT', SendMailFrame, 'BOTTOMLEFT', 2 + 15, 184 + areay - 14)
+
+	SendMailScrollFrame:SetHeight(scrollHeight)
+	SendMailScrollChildFrame:SetHeight(scrollHeight)
+
+	local SendMailScrollFrameTop = ({SendMailScrollFrame:GetRegions()})[3]
+	SendMailScrollFrameTop:SetHeight(scrollHeight)
+	SendMailScrollFrameTop:SetTexCoord(0, 0.484375, 0, scrollHeight / 256)
+
+	StationeryBackgroundLeft:SetHeight(scrollHeight)
+	StationeryBackgroundLeft:SetTexCoord(0, 1.0, 0, scrollHeight / 256)
+
+
+	StationeryBackgroundRight:SetHeight(scrollHeight)
+	StationeryBackgroundRight:SetTexCoord(0, 1.0, 0, scrollHeight / 256)
+
+
+		-- Set Items
+	for i=1, ATTACHMENTS_MAX_SEND do
+		if cursory >= 0 then
+			getglobal("PostalAttachment"..i):Enable()
+			getglobal("PostalAttachment"..i):Show()
+			getglobal("PostalAttachment"..i):SetPoint("TOPLEFT", "SendMailFrame", "BOTTOMLEFT", indentx + (tabx * cursorx), indenty + (taby * cursory));
+			
+			cursorx = cursorx + 1
+			if cursorx >= ATTACHMENTS_PER_ROW_SEND then
+				cursory = cursory - 1
+				cursorx = 0
+			end
+		else
+			getglobal("PostalAttachment"..i):Hide()
+		end
+	end
+	for i=ATTACHMENTS_MAX_SEND+1, ATTACHMENTS_MAX do
+		getglobal("PostalAttachment"..i):Hide()
+	end
+end
+
 function Postal:OnEnable()
 	self:RegisterEvent("MAIL_INBOX_UPDATE")
 	self:RegisterEvent("UI_ERROR_MESSAGE")
@@ -56,6 +201,7 @@ function Postal:OnEnable()
 	self:Hook("ContainerFrameItemButton_OnClick")
 	self:Hook("PickupContainerItem")
 	self:Hook("UseContainerItem")
+	self:Hook("SendMailFrame_Update")
 	self:Hook("ContainerFrame_Update")
 	self:Hook("ClickSendMailItemButton")
 	self:HookScript(TradeFrame, "OnShow", "TF_Show")
@@ -67,9 +213,19 @@ function Postal:OnEnable()
 	self:Hook("OpenMail_Reply")
 	oldTakeInboxMoney = OpenMailMoneyButton:GetScript("OnClick")
 
-	SendMailScrollFrame:SetHeight(200)
-	StationeryBackgroundLeft:SetHeight(200)
-	StationeryBackgroundRight:SetHeight(200)
+	-- NEW
+	SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
+	PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+	PostalHorizontalBarLeft:SetWidth(256)
+	PostalHorizontalBarLeft:SetHeight(16)
+	PostalHorizontalBarLeft:SetTexCoord(0, 1, 0, 0.25)
+	SendMailFrame:CreateTexture('PostalHorizontalBarRight', 'BACKGROUND')
+	PostalHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+	PostalHorizontalBarRight:SetWidth(75)
+	PostalHorizontalBarRight:SetHeight(16)
+	PostalHorizontalBarRight:SetTexCoord(0, 0.29296875, 0.25, 0.5)
+	PostalHorizontalBarRight:SetPoint('LEFT', PostalHorizontalBarLeft, 'RIGHT')
+	Postal:SendMailFrame_Update()
 end
 
 function Postal:MAIL_CLOSED()
@@ -131,10 +287,10 @@ function Postal:UseContainerItem(bag, item)
 		PostalFrame.bag = bag
 		PostalFrame.item = item
 	end
-	if PostalFrame:IsVisible() and not CursorHasItem() then
+	if SendMailFrame:IsVisible() and not CursorHasItem() then
 		local i
 		for i = 1, POSTAL_NUMITEMBUTTONS do
-			if not getglobal("PostalButton" .. i).item then
+			if not getglobal("PostalAttachment" .. i).item then
 
 				if self:ItemIsMailable(bag, item) then
 					Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
@@ -142,15 +298,11 @@ function Postal:UseContainerItem(bag, item)
 				end
 
 				self.hooks["PickupContainerItem"].orig(bag, item)
-				self:MailButton_OnClick(getglobal("PostalButton" .. i))
+				self:MailButton_OnClick(getglobal("PostalAttachment" .. i))
 				self:UpdateItemButtons()
 				return
 			end
 		end
-	elseif SendMailFrame:IsVisible() and not CursorHasItem() then
-		self.hooks["PickupContainerItem"].orig(bag, item)
-		ClickSendMailItemButton()
-		return
 	elseif TradeFrame:IsVisible() and not CursorHasItem() then
 		for i = 1, 6 do
 			if not GetTradePlayerItemLink(i) then
@@ -229,8 +381,8 @@ function Postal:MailButton_OnClick(button)
 			PostalFrame.item = nil
 		end
 		local texture, count = GetContainerItemInfo(bag, item)
-		getglobal(button:GetName() .. "IconTexture"):Show()
-		getglobal(button:GetName() .. "IconTexture"):SetTexture(texture)
+		-- getglobal(button:GetName() .. "IconTexture"):Show()
+		button:SetNormalTexture(texture)
 		if count > 1 then
 			getglobal(button:GetName() .. "Count"):SetText(count)
 			getglobal(button:GetName() .. "Count"):Show()
@@ -243,7 +395,8 @@ function Postal:MailButton_OnClick(button)
 		button.count = count
 	elseif button.item and button.bag then
 		self.hooks["PickupContainerItem"].orig(button.bag, button.item)
-		getglobal(button:GetName() .. "IconTexture"):Hide()
+		-- getglobal(button:GetName() .. "IconTexture"):Hide()
+		button:SetNormalTexture(nil)
 		getglobal(button:GetName() .. "Count"):Hide()
 		PostalFrame.bag = button.bag
 		PostalFrame.item = button.item
@@ -255,13 +408,15 @@ function Postal:MailButton_OnClick(button)
 	local num = self:GetNumMails()
 	PostalFrame.num = num
 	self:CanSend(PostalNameEditBox)
-	if num == 0 then num = 1 end
-	MoneyFrame_Update("PostalCostMoneyFrame", GetSendMailPrice()*num)
+	MoneyFrame_Update("PostalCostMoneyFrame", GetSendMailPrice() * max(1, num))
 	for i = 1, NUM_CONTAINER_FRAMES do
 		if getglobal("ContainerFrame" .. i):IsVisible() then
 			ContainerFrame_Update(getglobal("ContainerFrame" .. i))
 		end
 	end
+
+	-- NEW
+	Postal:SendMailFrame_Update()
 end
 
 function Postal:ItemIsMailable(bag, item)
@@ -284,15 +439,15 @@ end
 function Postal:UpdateItemButtons(frame)
 	local i
 	for i = 1, POSTAL_NUMITEMBUTTONS do
-		local btn = getglobal("PostalButton" .. i)
+		local btn = getglobal("PostalAttachment" .. i)
 		if not frame or btn ~= frame then
 			local texture, count
 			if btn.item and btn.bag then
 				texture, count = GetContainerItemInfo(btn.bag, btn.item)
 			end
 			if not texture then
-				getglobal(btn:GetName() .. "IconTexture"):Hide()
-				getglobal(btn:GetName() .. "Count"):Hide()
+				btn:SetNormalTexture(nil)
+				getglobal(btn:GetName().."Count"):Hide()
 				btn.item = nil
 				btn.bag = nil
 				btn.count = nil
@@ -300,13 +455,12 @@ function Postal:UpdateItemButtons(frame)
 			else
 				btn.count = count
 				btn.texture = texture
-				getglobal(btn:GetName() .. "IconTexture"):Show()
-				getglobal(btn:GetName() .. "IconTexture"):SetTexture(texture)
+				btn:SetNormalTexture(texture)
 				if count > 1 then
-					getglobal(btn:GetName() .. "Count"):Show()
-					getglobal(btn:GetName() .. "Count"):SetText(count)
+					getglobal(btn:GetName().."Count"):Show()
+					getglobal(btn:GetName().."Count"):SetText(count)
 				else
-					getglobal(btn:GetName() .. "Count"):Hide()
+					getglobal(btn:GetName().."Count"):Hide()
 				end
 			end
 		end
@@ -316,7 +470,7 @@ end
 function Postal:GetItemFrame(bag, item)
 	local i
 	for i = 1, POSTAL_NUMITEMBUTTONS do
-		local btn = getglobal("PostalButton" .. i)
+		local btn = getglobal("PostalAttachment" .. i)
 		if btn.item == item and btn.bag == bag then
 			return btn
 		end
@@ -328,7 +482,7 @@ function Postal:GetNumMails()
 	local i
 	local num = 0
 	for i = 1, POSTAL_NUMITEMBUTTONS do
-		local btn = getglobal("PostalButton" .. i)
+		local btn = getglobal("PostalAttachment" .. i)
 		if btn.item and btn.bag then
 			num = num + 1
 		end
@@ -340,7 +494,7 @@ function Postal:ClearItems()
 	local i
 	local num = 0
 	for i = 1, POSTAL_NUMITEMBUTTONS do
-		local btn = getglobal("PostalButton" .. i)
+		local btn = getglobal("PostalAttachment" .. i)
 		btn.item = nil
 		btn.count = nil
 		btn.bag = nil
@@ -418,7 +572,7 @@ end
 function Postal:FillItemTable()
 	local arr = {}
 	for i = 1, POSTAL_NUMITEMBUTTONS do
-		local btn = getglobal("PostalButton" .. i)
+		local btn = getglobal("PostalAttachment" .. i)
 		if btn.item and btn.bag then
 			tinsert(arr, { ["item"] = btn.item, ["bag"] = btn.bag, ["to"] = PostalNameEditBox:GetText() })
 		end

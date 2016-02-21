@@ -12,7 +12,8 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</OnLoad>
 		</Scripts>
 	</frame>
-	<Button name="PostalButtonTemplate" virtual="true">
+
+	<Button name="PostalAttachment" virtual="true">
 		<Size>
 			<AbsDimension x="37" y="37"/>
 		</Size>
@@ -25,7 +26,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 					<Anchors>
 						<Anchor point="TOPLEFT">
 							<Offset>
-								<AbsDimension x="-2" y="2"/>
+								<AbsDimension x="-1" y="1"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -43,13 +44,21 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 					</Anchors>
 				</FontString>
 			</Layer>
-			<Layer level="BORDER">
-				<Texture name="$parentIconTexture"/>
+			<Layer level="OVERLAY">
+				<Texture parentKey="IconBorder" file="Interface\Common\WhiteIconFrame" hidden="true">
+					<Size>
+						<AbsDimension x="37" y="37"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
 		<Scripts>
 			<OnLoad>
-				this:RegisterForDrag("LeftButton")
+				this:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+				this:RegisterForDrag('LeftButton')
 			</OnLoad>
 			<OnReceiveDrag>
 				Postal:MailButton_OnClick()
@@ -61,19 +70,51 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 				Postal:MailButton_OnClick()
 			</OnClick>
 			<OnEnter>
-				GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
-				if ( this.item and this.bag ) then
-					GameTooltip:SetBagItem(this.bag,this.item);
+				GameTooltip:SetOwner(this, 'ANCHOR_RIGHT')
+				if this.item and this.bag then
+					GameTooltip:SetBagItem(this.bag,this.item)
 				else
-					GameTooltip:SetText(ATTACHMENT_TEXT, 1.0, 1.0, 1.0);
+					GameTooltip:SetText(ATTACHMENT_TEXT, 1.0, 1.0, 1.0)
 				end
 			</OnEnter>
 			<OnLeave>
 				GameTooltip:Hide()
 			</OnLeave>
-		</Scripts> 
+<!--
+			<OnEnter>
+				SendMailAttachment_OnEnter(self, motion);
+			</OnEnter>
+			<OnUpdate>
+				if ( GameTooltip:IsOwned(self) ) then
+					SendMailAttachment_OnEnter(self);
+				end
+			</OnUpdate>-->
+		</Scripts>
 		<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
 	</Button>
+	
+	<Button name="PostalAttachment1" parent="SendMailFrame" inherits="PostalAttachment" id="1"/>
+	<Button name="PostalAttachment2" parent="SendMailFrame" inherits="PostalAttachment" id="2"/>
+	<Button name="PostalAttachment3" parent="SendMailFrame" inherits="PostalAttachment" id="3"/>
+	<Button name="PostalAttachment4" parent="SendMailFrame" inherits="PostalAttachment" id="4"/>
+	<Button name="PostalAttachment5" parent="SendMailFrame" inherits="PostalAttachment" id="5"/>
+	<Button name="PostalAttachment6" parent="SendMailFrame" inherits="PostalAttachment" id="6"/>
+	<Button name="PostalAttachment7" parent="SendMailFrame" inherits="PostalAttachment" id="7"/>
+	<Button name="PostalAttachment8" parent="SendMailFrame" inherits="PostalAttachment" id="8"/>
+	<Button name="PostalAttachment9" parent="SendMailFrame" inherits="PostalAttachment" id="9"/>
+	<Button name="PostalAttachment10" parent="SendMailFrame" inherits="PostalAttachment" id="10"/>
+	<Button name="PostalAttachment11" parent="SendMailFrame" inherits="PostalAttachment" id="11"/>
+	<Button name="PostalAttachment12" parent="SendMailFrame" inherits="PostalAttachment" id="12"/>
+	<Button name="PostalAttachment13" parent="SendMailFrame" inherits="PostalAttachment" id="13"/>
+	<Button name="PostalAttachment14" parent="SendMailFrame" inherits="PostalAttachment" id="14"/>
+	<Button name="PostalAttachment15" parent="SendMailFrame" inherits="PostalAttachment" id="15"/>
+	<Button name="PostalAttachment16" parent="SendMailFrame" inherits="PostalAttachment" id="16"/>
+	<Button name="PostalAttachment17" parent="SendMailFrame" inherits="PostalAttachment" id="17"/>
+	<Button name="PostalAttachment18" parent="SendMailFrame" inherits="PostalAttachment" id="18"/>
+	<Button name="PostalAttachment19" parent="SendMailFrame" inherits="PostalAttachment" id="19"/>
+	<Button name="PostalAttachment20" parent="SendMailFrame" inherits="PostalAttachment" id="20"/>
+	<Button name="PostalAttachment21" parent="SendMailFrame" inherits="PostalAttachment" id="21"/>
+
 	<Frame name="PostalFrame" parent="MailFrame" hidden="true">
 		<Size>
 			<AbsDimension x="384" y="512"/>
@@ -119,32 +160,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 						</Anchor>
 					</Anchors>
 				</FontString>
-				<Texture name="PostalHorizontalBarLeft" file="Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar">
-					<Size>
-						<AbsDimension x="256" y="16"/>
-					</Size>
-					<Anchors>
-						<Anchor point="TOPLEFT">
-							<Offset>
-								<AbsDimension x="15" y="-350"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-					<TexCoords left="0" right="1.0" top="0" bottom="0.25"/>
-				</Texture>
-				<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar">
-					<Size>
-						<AbsDimension x="75" y="16"/>
-					</Size>
-					<Anchors>
-						<Anchor point="LEFT" relativeTo="PostalHorizontalBarLeft" relativePoint="RIGHT">
-							<Offset>
-								<AbsDimension x="0" y="0"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-					<TexCoords left="0" right="0.29296875" top="0.25" bottom="0.5"/>
-				</Texture>
 			</Layer>
 		</Layers>
 		<Frames>
@@ -382,201 +397,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 						PostalGlobalFrame:Hide();
 					</OnClick>
 				</Scripts>
-			</Button>
-
-			<Button name="PostalButton1" inherits="PostalButtonTemplate" id="1" hidden="false">
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="30" y="-222"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton2" inherits="PostalButtonTemplate" id="2" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton1">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton3" inherits="PostalButtonTemplate" id="3" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton2">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton4" inherits="PostalButtonTemplate" id="4" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton3">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton5" inherits="PostalButtonTemplate" id="5" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton4">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton6" inherits="PostalButtonTemplate" id="6" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton5">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton7" inherits="PostalButtonTemplate" id="7" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton6">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-
-
-
-			<Button name="PostalButton8" inherits="PostalButtonTemplate" id="8" hidden="false">
-				<Anchors>
-					<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PostalButton1">
-						<Offset>
-							<AbsDimension x="0" y="-8"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton9" inherits="PostalButtonTemplate" id="9" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton8">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton10" inherits="PostalButtonTemplate" id="10" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton9">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton11" inherits="PostalButtonTemplate" id="11" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton10">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton12" inherits="PostalButtonTemplate" id="12" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton11">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton13" inherits="PostalButtonTemplate" id="13" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton12">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton14" inherits="PostalButtonTemplate" id="14" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton13">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-
-
-			<Button name="PostalButton15" inherits="PostalButtonTemplate" id="15" hidden="false">
-				<Anchors>
-					<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PostalButton8">
-						<Offset>
-							<AbsDimension x="0" y="-8"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton16" inherits="PostalButtonTemplate" id="16" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton15">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton17" inherits="PostalButtonTemplate" id="17" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton16">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton18" inherits="PostalButtonTemplate" id="18" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton17">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton19" inherits="PostalButtonTemplate" id="19" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton18">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton20" inherits="PostalButtonTemplate" id="20" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton19">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</Button>
-			<Button name="PostalButton21" inherits="PostalButtonTemplate" id="21" hidden="false">
-				<Anchors>
-					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="PostalButton20">
-						<Offset>
-							<AbsDimension x="8" y="0"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
 			</Button>
 		</Frames>
 		<Scripts>
