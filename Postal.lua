@@ -23,18 +23,11 @@ function Postal:OnInitialize()
 	end
 
 	POSTAL_NUMITEMBUTTONS = 21
-	Postal_BagLinks = {}
-	Postal_ScheduledStack = {}
 	Postal_SelectedItems = {}
-	Postal_DELETEDELAY = 1
 
-	PostalGlobalFrame.queue = {}
-	PostalGlobalFrame.total = 0
 	PostalGlobalFrame.sendmail = 0
 
 	PostalTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
-
-	PostalInboxFrame.eventFunc = {}
 end
 
 function Postal:SendMailFrame_Update()
@@ -262,7 +255,7 @@ function Postal:MAIL_CLOSED()
 	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
 	-- Does not scan past the first 50 items since only the first 50 are viewable.
 	for i = 1, GetInboxNumItems() do
-		_, _, _, _, _, _, _, _, wasRead = GetInboxHeaderInfo(i)
+		local wasRead = ({ GetInboxHeaderInfo(i) })[9]
 		if not wasRead then
 			return
 		end
@@ -677,7 +670,6 @@ function Postal:UI_ERROR_MESSAGE()
 				Postal:Print("Postal: Inventory full. Aborting.", 1, 0, 0)
 			elseif arg1 == ERR_ITEM_MAX_COUNT then
 				Postal:Print("Postal: You already have the maximum amount of that item. Skipping.", 1, 0, 0)
-				this.timeout = Postal_DELETEDELAY
 				if this.lastVal then
 					for key, va in this.id do
 						if va >= this.lastVal then
@@ -774,7 +766,6 @@ end
 function Postal:Inbox_Abort()
 	Postal.open.stop()
 	PostalInboxFrame.num = nil
-	PostalInboxFrame.timeout = nil
 	PostalInboxFrame.id = {}
 	Postal_SelectedItems = {}
 	Postal:Inbox_DisableClicks()
