@@ -1,10 +1,8 @@
 ﻿## Interface: 11200
 ## Version: 1.0
-## Title: Postal |cff7fff7f -Ace2-|r
+## Title: Postal
 ## Notes: Postal
-## Notes-zhCN: 批量邮件收取发送
-## Author: Grennon
-## X-Category: Interface
+## Author: shirsig
 ## OptionalDeps: Ace2
 libs\AceLibrary\AceLibrary.lua
 libs\AceOO\AceOO-2.0.lua

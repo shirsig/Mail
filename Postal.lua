@@ -28,17 +28,12 @@ function Postal:OnInitialize()
 	Postal_SelectedItems = {}
 	Postal_DELETEDELAY = 1
 
-	PostalFrame.num = 0
-	PanelTemplates_SetNumTabs(MailFrame, 3)
-
 	PostalForwardFrame.pickItem = {}
 	PostalForwardFrame.process = 0
 
 	PostalGlobalFrame.queue = {}
-	PostalGlobalFrame.update = 0
 	PostalGlobalFrame.total = 0
 	PostalGlobalFrame.sendmail = 0
-	PostalGlobalFrame.latency = 2.25
 
 	PostalTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
 
@@ -46,31 +41,8 @@ function Postal:OnInitialize()
 end
 
 function Postal:SendMailFrame_Update()
-	do
-		local background = ({SendMailPackageButton:GetRegions()})[1]
-		background:Hide()
-		local count = ({SendMailPackageButton:GetRegions()})[3]
-		count:Hide()
-		SendMailPackageButton:Disable()
-		SendMailPackageButton:SetScript('OnReceiveDrag', nil)
-		SendMailPackageButton:SetScript('OnDragStart', nil)
-	end
 
-	do
-		SendMailMoneyText:SetPoint('TOPLEFT', 0, -2)
-		SendMailMoney:ClearAllPoints()
-		SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -3)
-		SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
-	end
-
-	SendMailMailButton:SetScript('OnClick', function()
-		PostalGlobalFrame.queue = Postal:FillItemTable();
-		PostalGlobalFrame.total = getn(PostalGlobalFrame.queue);
-		Postal:ClearItems();
-		PostalGlobalFrame:Show();
-		this:GetParent():Hide();
-		POSTAL_CANSENDNEXT = 1
-	end)
+	MoneyFrame_Update("SendMailCostMoneyFrame", GetSendMailPrice() * max(1, self:GetNumMails()))
 
 	ATTACHMENTS_PER_ROW_SEND = 7
 	ATTACHMENTS_MAX_SEND = 21
@@ -122,7 +94,7 @@ function Postal:SendMailFrame_Update()
 		itemRowCount = itemRowCount + 1;
 		temp = temp - ATTACHMENTS_PER_ROW_SEND
 	end
-	Aux.log(itemRowCount)
+
 	if not gap and temp == ATTACHMENTS_PER_ROW_SEND and itemRowCount < ATTACHMENTS_MAX_ROWS_SEND then
 		itemRowCount = itemRowCount + 1;
 	end
@@ -188,13 +160,22 @@ function Postal:SendMailFrame_Update()
 	for i=ATTACHMENTS_MAX_SEND+1, ATTACHMENTS_MAX do
 		getglobal("PostalAttachment"..i):Hide()
 	end
+
+	if self:GetNumMails() > 0 then
+		SendMailCODButton:Enable();
+		SendMailCODButtonText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
+	else
+		SendMailRadioButton_OnClick(1);
+		SendMailCODButton:Disable();
+		SendMailCODButtonText:SetTextColor(GRAY_FONT_COLOR.r, GRAY_FONT_COLOR.g, GRAY_FONT_COLOR.b);
+	end
+
+	Postal:SendMailFrame_CanSend()
 end
 
 function Postal:OnEnable()
-	self:RegisterEvent("MAIL_INBOX_UPDATE")
 	self:RegisterEvent("UI_ERROR_MESSAGE")
 	self:RegisterEvent("MAIL_SEND_SUCCESS")
-	self:RegisterEvent("MAIL_SEND_INFO_UPDATE")
 	self:RegisterEvent("MAIL_CLOSED")
 	self:RegisterEvent("BAG_UPDATE")
 
@@ -202,11 +183,11 @@ function Postal:OnEnable()
 	self:Hook("PickupContainerItem")
 	self:Hook("UseContainerItem")
 	self:Hook("SendMailFrame_Update")
+	self:Hook('SendMailFrame_CanSend')
 	self:Hook("ContainerFrame_Update")
 	self:Hook("ClickSendMailItemButton")
 	self:HookScript(TradeFrame, "OnShow", "TF_Show")
 	self:Hook("InboxFrameItem_OnEnter")
-	self:Hook("MailFrameTab_OnClick")
 	self:Hook("InboxFrame_OnClick")
 	self:Hook("InboxFrame_Update")
 	self:Hook("CloseMail")
@@ -225,6 +206,57 @@ function Postal:OnEnable()
 	PostalHorizontalBarRight:SetHeight(16)
 	PostalHorizontalBarRight:SetTexCoord(0, 0.29296875, 0.25, 0.5)
 	PostalHorizontalBarRight:SetPoint('LEFT', PostalHorizontalBarLeft, 'RIGHT')
+
+	do
+		local background = ({SendMailPackageButton:GetRegions()})[1]
+		background:Hide()
+		local count = ({SendMailPackageButton:GetRegions()})[3]
+		count:Hide()
+		SendMailPackageButton:Disable()
+		SendMailPackageButton:SetScript('OnReceiveDrag', nil)
+		SendMailPackageButton:SetScript('OnDragStart', nil)
+	end
+
+	do
+		SendMailMoneyText:SetPoint('TOPLEFT', 0, -2)
+		SendMailMoney:ClearAllPoints()
+		SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -3)
+		SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
+	end
+
+	PostalMailButton:SetScript('OnClick', function()
+		PostalGlobalFrame.first = true
+		PostalGlobalFrame.to = SendMailNameEditBox:GetText()
+		PostalGlobalFrame.subject = PostalSubjectEditBox:GetText() ~= '' and PostalSubjectEditBox:GetText()
+		PostalGlobalFrame.body = SendMailBodyEditBox:GetText()
+		PostalGlobalFrame.money = MoneyInputFrame_GetCopper(SendMailMoney)
+		PostalGlobalFrame.cod = SendMailCODButton:GetChecked()
+		PostalGlobalFrame.queue = Postal:FillItemTable()
+		PostalGlobalFrame.total = getn(PostalGlobalFrame.queue)
+		PostalGlobalFrame:Show()
+		POSTAL_CANSENDNEXT = 1
+
+		Postal:ClearItems()
+		Postal:SendMailFrame_Update()
+	end)
+
+	-- hack to avoid automatic subject setting/button enabling
+	SendMailMailButton:Hide()
+	SendMailSubjectEditBox:Hide()
+	SendMailNameEditBox:SetScript('OnTabPressed', function()
+		PostalSubjectEditBox:SetFocus()
+	end)
+	SendMailNameEditBox:SetScript('OnEnterPressed', function()
+		PostalSubjectEditBox:SetFocus()
+	end)
+	SendMailBodyEditBox:SetScript('OnTabPressed', function()
+		if IsShiftKeyDown() then
+			PostalSubjectEditBox:SetFocus()
+		else
+			SendMailMoneyGold:SetFocus()
+		end
+	end)
+
 	Postal:SendMailFrame_Update()
 end
 
@@ -263,41 +295,41 @@ function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
 	self:UpdateItemButtons()
 end
 
-function Postal:PickupContainerItem(bag, item, special)
-	if (self:GetItemFrame(bag, item) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == item)) and not special then
+function Postal:PickupContainerItem(bag, slot, special)
+	if (self:GetItemFrame(bag, slot) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == slot)) and not special then
 		return
 	end
 	if not CursorHasItem() then
 		PostalFrame.bag = bag
-		PostalFrame.item = item
+		PostalFrame.slot = slot
 	end
-	self.hooks["PickupContainerItem"].orig(bag, item)
+	self.hooks["PickupContainerItem"].orig(bag, slot)
 	self:UpdateItemButtons()
 end
 
-function Postal:UseContainerItem(bag, item)
+function Postal:UseContainerItem(bag, slot)
 	if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
-		return self.hooks["UseContainerItem"].orig(bag, item)
+		return self.hooks["UseContainerItem"].orig(bag, slot)
 	end
 
-	if self:GetItemFrame(bag, item) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == item) then
+	if self:GetItemFrame(bag, slot) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == slot) then
 		return
 	end
 	if not CursorHasItem() then
 		PostalFrame.bag = bag
-		PostalFrame.item = item
+		PostalFrame.slot = slot
 	end
 	if SendMailFrame:IsVisible() and not CursorHasItem() then
 		local i
 		for i = 1, POSTAL_NUMITEMBUTTONS do
-			if not getglobal("PostalAttachment" .. i).item then
+			if not getglobal("PostalAttachment" .. i).slot then
 
-				if self:ItemIsMailable(bag, item) then
+				if self:ItemIsMailable(bag, slot) then
 					Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
 					return
 				end
 
-				self.hooks["PickupContainerItem"].orig(bag, item)
+				self.hooks["PickupContainerItem"].orig(bag, slot)
 				self:MailButton_OnClick(getglobal("PostalAttachment" .. i))
 				self:UpdateItemButtons()
 				return
@@ -306,14 +338,14 @@ function Postal:UseContainerItem(bag, item)
 	elseif TradeFrame:IsVisible() and not CursorHasItem() then
 		for i = 1, 6 do
 			if not GetTradePlayerItemLink(i) then
-				self.hooks["PickupContainerItem"].orig(bag, item)
+				self.hooks["PickupContainerItem"].orig(bag, slot)
 				ClickTradeButton(i)
 				return
 			end
 		end
 	elseif not CursorHasItem() and (not TradeFrame or not TradeFrame:IsVisible()) and (not AuctionFrame or not AuctionFrame:IsVisible()) and UnitExists("target") and CheckInteractDistance("target", 2) and UnitIsFriend("player", "target") and UnitIsPlayer("target") then
 		InitiateTrade("target")
-		Postal_addItem = { bag, item, UnitName("target"), 2 }
+		Postal_addItem = { bag, slot, UnitName("target"), 2 }
 		for i = 1, NUM_CONTAINER_FRAMES do
 			if getglobal("ContainerFrame" .. i):IsVisible() then
 				ContainerFrame_Update(getglobal("ContainerFrame" .. i))
@@ -322,37 +354,13 @@ function Postal:UseContainerItem(bag, item)
 		return
 	end
 
-	self.hooks["UseContainerItem"].orig(bag, item)
-end
-
-function Postal:MailFrameTab_OnClick(tab)
-	if not tab then 
-		tab = this:GetID()
-	end
-
-	if tab == 3 then
-		PanelTemplates_SetTab(MailFrame, 3)
-		InboxFrame:Hide()
-		SendMailFrame:Hide()
-		PostalFrame:Show()
-		SendMailFrame.sendMode = "massmail"
-		MailFrameTopLeft:SetTexture("Interface\\ClassTrainerFrame\\UI-ClassTrainer-TopLeft")
-		MailFrameTopRight:SetTexture("Interface\\ClassTrainerFrame\\UI-ClassTrainer-TopRight")
-		MailFrameBotLeft:SetTexture("Interface\\ClassTrainerFrame\\UI-ClassTrainer-BotLeft")
-		MailFrameBotRight:SetTexture("Interface\\ClassTrainerFrame\\UI-ClassTrainer-BotRight")
-		MailFrameTopLeft:SetPoint("TOPLEFT", "MailFrame", "TOPLEFT", 2, -1)
-		return
-	else
-		PostalFrame:Hide()
-	end
-	self.hooks["MailFrameTab_OnClick"].orig(tab)
-	self:Forward_EnableForward()
+	self.hooks["UseContainerItem"].orig(bag, slot)
 end
 
 function Postal:ClickSendMailItemButton()
 	if not GetSendMailItem() then
 		PostalFrame.mailbag = PostalFrame.bag
-		PostalFrame.mailitem = PostalFrame.item
+		PostalFrame.mailitem = PostalFrame.slot
 	end
 	self.hooks["ClickSendMailItemButton"].orig()
 end
@@ -362,25 +370,25 @@ function Postal:MailButton_OnClick(button)
 	if not button then button = this end
 	if CursorHasItem() then
 		local bag = PostalFrame.bag
-		local item = PostalFrame.item
-		if not bag or not item then return end
-		if self:ItemIsMailable(bag, item) then
+		local slot = PostalFrame.slot
+		if not bag or not slot then return end
+		if self:ItemIsMailable(bag, slot) then
 			Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
-			self.hooks["PickupContainerItem"].orig(bag, item)
+			self.hooks["PickupContainerItem"].orig(bag, slot)
 			return
 		end
-		self.hooks["PickupContainerItem"].orig(bag, item)
-		if this.bag and this.item then
+		self.hooks["PickupContainerItem"].orig(bag, slot)
+		if this.bag and this.slot then
 			-- There's already an item there
 			-- Pickup that item to replicate Send Mail's behaviour
-			self.hooks["PickupContainerItem"].orig(button.bag, button.item)
+			self.hooks["PickupContainerItem"].orig(button.bag, button.slot)
 			PostalFrame.bag = button.bag
-			PostalFrame.item = button.item
+			PostalFrame.slot = button.slot
 		else
 			PostalFrame.bag = nil
-			PostalFrame.item = nil
+			PostalFrame.slot = nil
 		end
-		local texture, count = GetContainerItemInfo(bag, item)
+		local texture, count = GetContainerItemInfo(bag, slot)
 		-- getglobal(button:GetName() .. "IconTexture"):Show()
 		button:SetNormalTexture(texture)
 		if count > 1 then
@@ -390,25 +398,22 @@ function Postal:MailButton_OnClick(button)
 			getglobal(button:GetName() .. "Count"):Hide()
 		end
 		button.bag = bag
-		button.item = item
+		button.slot = slot
 		button.texture = texture
 		button.count = count
-	elseif button.item and button.bag then
-		self.hooks["PickupContainerItem"].orig(button.bag, button.item)
+	elseif button.slot and button.bag then
+		self.hooks["PickupContainerItem"].orig(button.bag, button.slot)
 		-- getglobal(button:GetName() .. "IconTexture"):Hide()
 		button:SetNormalTexture(nil)
 		getglobal(button:GetName() .. "Count"):Hide()
 		PostalFrame.bag = button.bag
-		PostalFrame.item = button.item
-		button.item = nil
+		PostalFrame.slot = button.slot
+		button.slot = nil
 		button.bag = nil
 		button.count = nil
 		button.texture = nil
 	end
-	local num = self:GetNumMails()
-	PostalFrame.num = num
-	self:CanSend(PostalNameEditBox)
-	MoneyFrame_Update("PostalCostMoneyFrame", GetSendMailPrice() * max(1, num))
+
 	for i = 1, NUM_CONTAINER_FRAMES do
 		if getglobal("ContainerFrame" .. i):IsVisible() then
 			ContainerFrame_Update(getglobal("ContainerFrame" .. i))
@@ -419,13 +424,13 @@ function Postal:MailButton_OnClick(button)
 	Postal:SendMailFrame_Update()
 end
 
-function Postal:ItemIsMailable(bag, item)
+function Postal:ItemIsMailable(bag, slot)
 	-- Make sure tooltip is cleared
 	for i = 1, 29 do
 		getglobal("PostalTooltipTextLeft" .. i):SetText("")
 	end
 
-	PostalTooltip:SetBagItem(bag, item)
+	PostalTooltip:SetBagItem(bag, slot)
 	for i = 1, PostalTooltip:NumLines() do
 		local text = getglobal("PostalTooltipTextLeft" .. i):GetText()
 		if text == ITEM_SOULBOUND or text == ITEM_BIND_QUEST or text == ITEM_CONJURED or text == ITEM_BIND_ON_PICKUP then
@@ -442,13 +447,13 @@ function Postal:UpdateItemButtons(frame)
 		local btn = getglobal("PostalAttachment" .. i)
 		if not frame or btn ~= frame then
 			local texture, count
-			if btn.item and btn.bag then
-				texture, count = GetContainerItemInfo(btn.bag, btn.item)
+			if btn.slot and btn.bag then
+				texture, count = GetContainerItemInfo(btn.bag, btn.slot)
 			end
 			if not texture then
 				btn:SetNormalTexture(nil)
 				getglobal(btn:GetName().."Count"):Hide()
-				btn.item = nil
+				btn.slot = nil
 				btn.bag = nil
 				btn.count = nil
 				btn.texture = nil
@@ -467,11 +472,11 @@ function Postal:UpdateItemButtons(frame)
 	end
 end
 
-function Postal:GetItemFrame(bag, item)
+function Postal:GetItemFrame(bag, slot)
 	local i
 	for i = 1, POSTAL_NUMITEMBUTTONS do
 		local btn = getglobal("PostalAttachment" .. i)
-		if btn.item == item and btn.bag == bag then
+		if btn.slot == slot and btn.bag == bag then
 			return btn
 		end
 	end
@@ -483,7 +488,7 @@ function Postal:GetNumMails()
 	local num = 0
 	for i = 1, POSTAL_NUMITEMBUTTONS do
 		local btn = getglobal("PostalAttachment" .. i)
-		if btn.item and btn.bag then
+		if btn.slot and btn.bag then
 			num = num + 1
 		end
 	end
@@ -495,23 +500,23 @@ function Postal:ClearItems()
 	local num = 0
 	for i = 1, POSTAL_NUMITEMBUTTONS do
 		local btn = getglobal("PostalAttachment" .. i)
-		btn.item = nil
+		btn.slot = nil
 		btn.count = nil
 		btn.bag = nil
 		btn.texture = nil
 	end
 	self:UpdateItemButtons()
 	PostalMailButton:Disable()
-	PostalNameEditBox:SetText("")
-	PostalSubjectEditBox:SetText("")
-	PostalStatusText:SetText("")
-	PostalAbortButton:Hide()
-	PostalAcceptSendFrame:Hide()
+	SendMailNameEditBox:SetText('')
+	SendMailNameEditBox:SetFocus()
+	PostalSubjectEditBox:SetText('')
+	SendMailBodyEditBox:SetText('')
+	MoneyInputFrame_ResetMoney(SendMailMoney)
+	SendMailRadioButton_OnClick(1)
 end
 
-function Postal:CanSend(eb)
-	if not eb then eb = this end
-	if strlen(eb:GetText()) > 0 and PostalFrame.num > 0 and GetSendMailPrice()*PostalFrame.num <= GetMoney() then
+function Postal:SendMailFrame_CanSend()
+	if strlen(SendMailNameEditBox:GetText()) > 0 and (SendMailSendMoneyButton:GetChecked() and MoneyInputFrame_GetCopper(SendMailMoney) or 0) + GetSendMailPrice() * self:GetNumMails() <= GetMoney() then
 		PostalMailButton:Enable()
 	else
 		PostalMailButton:Disable()
@@ -519,62 +524,66 @@ function Postal:CanSend(eb)
 end
 
 function Postal:SendMail()
-	for key, val in this.queue do
-		PostalStatusText:SetText(format(POSTAL_SENDING, key, this.total))
-		PostalAbortButton:Show()
 
-		if GetSendMailItem() and PostalFrame.mailbag and PostalFrame.mailitem then
-			-- There's already an item in the slot
+	local item = tremove(this.queue, 1)
+
+	if item or this.first then
+
+		local subject = this.subject or '[No Subject]'
+		if this.total > 1 then
+			subject = subject..format(' (Part %d of %d)', this.total - getn(this.queue), this.total)
+		end
+
+		if this.first then
+			this.first = false
+
+			if this.money then
+				if this.cod then
+					SetSendMailCOD(this.money)
+				else
+					SetSendMailMoney(this.money)
+				end
+			end
+		end
+
+		if item then
+			if GetSendMailItem() and PostalFrame.mailbag and PostalFrame.mailitem then
+				-- There's already an item in the slot
+				ClickSendMailItemButton()
+				self.hooks["PickupContainerItem"].orig(PostalFrame.mailbag, PostalFrame.mailitem)
+				PostalFrame.mailbag = nil
+				PostalFrame.mailitem = nil
+			elseif CursorHasItem() and PostalFrame.bag and PostalFrame.slot then
+				ClearCursor()
+				PostalFrame.bag = nil
+				PostalFrame.slot = nil
+			end
+
+			self.hooks["PickupContainerItem"].orig(item.bag, item.slot)
+
 			ClickSendMailItemButton()
-			self.hooks["PickupContainerItem"].orig(PostalFrame.mailbag, PostalFrame.mailitem)
-			PostalFrame.mailbag = nil
-			PostalFrame.mailitem = nil
-		elseif CursorHasItem() and PostalFrame.bag and PostalFrame.item then
-			PickupContainerItem(PostalFrame.bag, PostalFrame.item)
-			PostalFrame.bag = nil
-			PostalFrame.item = nil
+
+			local name, _, count = GetSendMailItem()
+
+			if not name then 
+				Postal:Print("Postal: " .. POSTAL_ERROR, 1, 0, 0)
+				return
+			end
 		end
 
-		self.hooks["PickupContainerItem"].orig(val.bag, val.item)
-
-		ClickSendMailItemButton()
-
-		local name, useless, count = GetSendMailItem()
-
-		if not name then 
-			Postal:Print("Postal: " .. POSTAL_ERROR, 1, 0, 0)
-		else
-			local subjectstr = PostalSubjectEditBox:GetText()
-			if strlen(subjectstr) > 0 then
-				subjectstr = subjectstr .. " "
-			end
-
-			if count > 1 then
-				subjectstr = subjectstr .. "[" .. name .. " x" .. count .. "]"
-			else
-				subjectstr = subjectstr .. "[" .. name .. "]"
-			end
-
-			SendMail(val.to, subjectstr, format(POSTAL_ITEMNUM, key, this.total))
-		end
-
-		PostalGlobalFrame.queue[key] = nil
+		SendMail(this.to, subject, this.body)
 		return
 	end
-	PostalStatusText:SetText(format(POSTAL_DONESENDING, this.total))
-	PostalAbortButton:Hide()
-	PostalGlobalFrame:Hide()
 
-	PostalGlobalFrame.total = 0
-	PostalGlobalFrame.queue = {}
+	PostalGlobalFrame:Hide()
 end
 
 function Postal:FillItemTable()
 	local arr = {}
 	for i = 1, POSTAL_NUMITEMBUTTONS do
 		local btn = getglobal("PostalAttachment" .. i)
-		if btn.item and btn.bag then
-			tinsert(arr, { ["item"] = btn.item, ["bag"] = btn.bag, ["to"] = PostalNameEditBox:GetText() })
+		if btn.slot and btn.bag then
+			tinsert(arr, { slot = btn.slot, bag = btn.bag })
 		end
 	end
 	return arr
@@ -587,10 +596,9 @@ function Postal:ProcessQueue(elapsed)
 	this.sendmail = this.sendmail + elapsed
 	if this.sendmail > 0.5 then
 		this.sendmail = 0
-		if this.total > 0 then
-			self:SendMail()
-			POSTAL_CANSENDNEXT = nil
-		end
+
+		self:SendMail()
+		POSTAL_CANSENDNEXT = nil
 	end
 end
 
@@ -606,18 +614,6 @@ function Postal:ContainerFrame_Update(frame)
 			end
 		end
 	end)
-end
-
-function Postal:MAIL_SEND_INFO_UPDATE()
-	if not SendMailFrame:IsVisible() then return end
-	local name, useless, count = GetSendMailItem()
-
-	if name and strlen(SendMailSubjectEditBox:GetText()) == 0 then
-		if count > 1 then
-			name = name .. " x" .. count
-		end
-		SendMailSubjectEditBox:SetText(name)
-	end
 end
 
 function Postal:InboxFrameItem_OnEnter()
@@ -678,9 +674,6 @@ function Postal:Inbox_OnUpdate(elapsed)
 	end
 end
 
-function Postal:MAIL_INBOX_UPDATE()
-end
-
 function Postal:UI_ERROR_MESSAGE()
 	if event == "UI_ERROR_MESSAGE" and (arg1 == ERR_INV_FULL or arg1 == ERR_ITEM_MAX_COUNT) then
 		if this.num then
@@ -705,7 +698,6 @@ end
 function Postal:Print(msg, r, g, b)
 	DEFAULT_CHAT_FRAME:AddMessage(msg, r, g, b)
 end
-
 
 
 function Postal_Inbox_SetSelected()
@@ -830,7 +822,6 @@ function Postal:OpenMail_Reply()
 	SendMailMoneyGold:SetText("")
 end
 
-
 function Postal:OpenReply()
 	OpenMail_Reply()
 	local _, _, _, subject, money = GetInboxHeaderInfo(InboxFrame.openMailID)
@@ -862,17 +853,14 @@ function Postal:OpenReply()
 	if strsub(subject, 1, strlen(prefix)) ~= prefix then
 		subject = prefix..subject
 	end
-	SendMailSubjectEditBox:SetText(subject or "")
+	PostalSubjectEditBox:SetText(subject or "")
 	SendMailBodyEditBox:SetText(string.gsub(OpenMailBodyText:GetText() or "", "\n", "\n>"))
 	SendMailNameEditBox:SetFocus()
-
-	-- Set the send mode so the work flow can change accordingly
-	SendMailFrame.sendMode = "reply"
 	
-	self:Forward_EnableForward(1)
+	-- self:Forward_EnableForward(1)
 end
 
-function Postal:SendMailMailButton_OnClick()
+function Postal:PostalMailButton_OnClick()
 	local name = GetInboxItem(InboxFrame.openMailID)
 	local _, _, _, _, money = GetInboxHeaderInfo(InboxFrame.openMailID)
 	if name then
@@ -889,7 +877,7 @@ function Postal:SendMailMailButton_OnClick()
 			PostalForwardFrame.countDown = 0.5
 		end
 	end
-	SendMailMailButton:Disable()
+	PostalMailButton:Disable()
 end
 
 function Postal:Forward_OnUpdate(elapsed)
@@ -901,15 +889,15 @@ function Postal:Forward_OnUpdate(elapsed)
 					this.countDown = 0.5
 					this.forwardStep = 3
 					-- Send the mail
-					SendMail(SendMailNameEditBox:GetText(), SendMailSubjectEditBox:GetText(), SendMailBodyEditBox:GetText())
-					SendMailMailButton:Disable()
+					SendMail(SendMailNameEditBox:GetText(), PostalSubjectEditBox:GetText(), SendMailBodyEditBox:GetText())
+					PostalMailButton:Disable()
 				elseif this.forwardStep == 3 then
 					-- Delete the old one
 					local _, _, _, _, money, _, _, itemID = GetInboxHeaderInfo(InboxFrame.openMailID)
 					if money == 0 and not itemID then
 						DeleteInboxItem(InboxFrame.openMailID)
 					end
-					self:MailFrameTab_OnClick(1)
+					MailFrameTab_OnClick(1)
 					HideUIPanel(OpenMailFrame)
 					this.countDown = nil
 					this.forwardStep = nil
@@ -962,8 +950,8 @@ end
 function Postal:SendMailPackageButton_OnClick()
 end
 
-function Postal:Forward_AttachSlot(container, item)
-	PickupContainerItem(container, item)
+function Postal:Forward_AttachSlot(container, slot)
+	PickupContainerItem(container, slot)
 	ClickSendMailItemButton()
 	PostalForwardFrame.searchItem = nil
 	PostalForwardFrame.forwardStep = 2
@@ -1040,7 +1028,7 @@ SendMailMoneyFrame.onvalueChangedFunc = function()
 	if oldSMMFfunc then
 		oldSMMFfunc()
 	end
-	local subject = SendMailSubjectEditBox:GetText()
+	local subject = PostalSubjectEditBox:GetText()
 	if subject == "" or string.find(subject, "%[%d+G, %d+S, %d+C%]") then
 		local copper, silver, gold = SendMailMoneyFrameCopper:GetText(), SendMailMoneyFrameSilver:GetText(), SendMailMoneyFrameGold:GetText()
 		if not tonumber(copper) then
@@ -1052,6 +1040,6 @@ SendMailMoneyFrame.onvalueChangedFunc = function()
 		if not tonumber(gold) then
 			gold = 0
 		end
-		SendMailSubjectEditBox:SetText(format("[%sG, %sS, %sC]", gold, silver, copper))
+		PostalSubjectEditBox:SetText(format("[%sG, %sS, %sC]", gold, silver, copper))
 	end
 end
