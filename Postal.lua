@@ -116,6 +116,10 @@ function Postal:PickupContainerItem(bag, item, special)
 end
 
 function Postal:UseContainerItem(bag, item)
+	if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
+		return self.hooks["UseContainerItem"].orig(bag, item)
+	end
+
 	if self:GetItemFrame(bag, item) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == item) then
 		return
 	end
@@ -161,8 +165,8 @@ function Postal:UseContainerItem(bag, item)
 		end
 		return
 	end
+
 	self.hooks["UseContainerItem"].orig(bag, item)
-	self:UpdateItemButtons()
 end
 
 function Postal:MailFrameTab_OnClick(tab)
