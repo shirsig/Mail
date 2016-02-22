@@ -481,7 +481,7 @@ function Postal:SendMail()
 			local name, _, count = GetSendMailItem()
 
 			if not name then 
-				Postal:Print("Postal: " .. POSTAL_ERROR, 1, 0, 0)
+				Postal:Print("Postal: An error occured in POSTAL. This might be related to lag, trying to send items with an item placed in the normal send mail window, or trying to send items that cannot be sent.", 1, 0, 0)
 				PostalGlobalFrame:Hide()
 				return
 			end

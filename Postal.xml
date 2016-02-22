@@ -1,9 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
-	<Script file="localization.lua"/>
-	<Script file="localization.ge.lua"/>
-	<Script file="localization.fr.lua"/>
-	<Script file="localization.cn.lua"/>
 	<Script file="Postal.lua"/>
 	<frame>
 		<Scripts>
@@ -244,7 +240,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<CheckButton name="PostalBoxItem5CB" id="5" hidden="true" parent="MailItem5" inherits="PostalBoxItemCBTemplate"/>
 	<CheckButton name="PostalBoxItem6CB" id="6" hidden="true" parent="MailItem6" inherits="PostalBoxItemCBTemplate"/>
 	<CheckButton name="PostalBoxItem7CB" id="7" hidden="true" parent="MailItem7" inherits="PostalBoxItemCBTemplate"/>
-	<Button name="PostalInboxOpenSelected" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="POSTAL_INBOX_OPENSELECTED">
+	<Button name="PostalInboxOpenSelected" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="Open Selected">
 		<Size>
 			<AbsDimension x="120" y="25"/>
 		</Size>
@@ -261,7 +257,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</OnClick>
 		</Scripts>
 	</Button>
-	<Button name="PostalInboxOpenAllButton" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="POSTAL_INBOX_OPENALL">
+	<Button name="PostalInboxOpenAllButton" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="Open All">
 		<Size>
 			<AbsDimension x="120" y="25"/>
 		</Size>
