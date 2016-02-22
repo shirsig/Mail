@@ -27,12 +27,12 @@ function Postal:OnInitialize()
 
 	PostalGlobalFrame.sendmail = 0
 
-	PostalTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
+	PostalTooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
 end
 
 function Postal:SendMailFrame_Update()
 
-	MoneyFrame_Update("SendMailCostMoneyFrame", GetSendMailPrice() * max(1, self:GetNumMails()))
+	MoneyFrame_Update('SendMailCostMoneyFrame', GetSendMailPrice() * max(1, self:GetNumMails()))
 
 	ATTACHMENTS_PER_ROW_SEND = 7
 	ATTACHMENTS_MAX_SEND = 21
@@ -45,36 +45,26 @@ function Postal:SendMailFrame_Update()
 	-- local last = 0
 	local last = self:GetNumMails()
 	for i=1, ATTACHMENTS_MAX_SEND do
-		-- -- get info about the attachment
-		-- local itemName, itemTexture, stackCount, quality = GetSendMailItem(i)
-		-- -- set attachment texture info
-		-- _G["PostalAttachment"..i]:SetNormalTexture(itemTexture)
-		-- -- set the stack count
-		-- if ( stackCount <= 1 ) then
-		-- 	_G["PostalAttachment"..i.."Count"]:SetText("")
-		-- else
-		-- 	_G["PostalAttachment"..i.."Count"]:SetText(stackCount)
-		-- end
+		local btn = getglobal('PostalAttachment' .. i)
 
-		-- local attachmentButton = _G["PostalAttachment"..i]
-
-		-- SetItemButtonQuality(attachmentButton, quality, GetSendMailItemLink(i))
-		
-		-- -- determine what a name for the message in case it doesn't already have one
-		-- if ( itemName ) then
-		-- 	itemCount = itemCount + 1
-		-- 	if ( not itemTitle ) then
-		-- 		if ( stackCount <= 1 ) then
-		-- 			itemTitle = itemName
-		-- 		else
-		-- 			itemTitle = itemName.." ("..stackCount..")"
-		-- 		end
-		-- 	end
-		-- 	if ((last + 1) ~= i) then
-		-- 		gap = 1
-		-- 	end
-		-- 	last = i
-		-- end
+		local texture, count
+		if btn.bag and btn.slot then
+			texture, count = GetContainerItemInfo(btn.bag, btn.slot)
+		end
+		if not texture then
+			btn:SetNormalTexture(nil)
+			getglobal(btn:GetName()..'Count'):Hide()
+			btn.slot = nil
+			btn.bag = nil
+		else
+			btn:SetNormalTexture(texture)
+			if count > 1 then
+				getglobal(btn:GetName()..'Count'):Show()
+				getglobal(btn:GetName()..'Count'):SetText(count)
+			else
+				getglobal(btn:GetName()..'Count'):Hide()
+			end
+		end
 	end
 
 	-- Determine how many rows of attachments to show
@@ -179,9 +169,7 @@ function Postal:OnEnable()
 	self:Hook("InboxFrameItem_OnEnter")
 	self:Hook("InboxFrame_Update")
 	self:Hook("CloseMail")
-	oldTakeInboxMoney = OpenMailMoneyButton:GetScript("OnClick")
 
-	-- NEW
 	SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
 	PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
 	PostalHorizontalBarLeft:SetWidth(256)
@@ -218,7 +206,7 @@ function Postal:OnEnable()
 		PostalGlobalFrame.body = SendMailBodyEditBox:GetText()
 		PostalGlobalFrame.money = MoneyInputFrame_GetCopper(SendMailMoney)
 		PostalGlobalFrame.cod = SendMailCODButton:GetChecked()
-		PostalGlobalFrame.queue = Postal:FillItemTable()
+		PostalGlobalFrame.queue = Postal:AttachmentList()
 		PostalGlobalFrame.total = getn(PostalGlobalFrame.queue)
 		PostalGlobalFrame:Show()
 		POSTAL_CANSENDNEXT = 1
@@ -280,7 +268,6 @@ function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
 		return
 	end
 	self.hooks["ContainerFrameItemButton_OnClick"].orig(btn, ignore)
-	self:UpdateItemButtons()
 end
 
 function Postal:PickupContainerItem(bag, slot, special)
@@ -292,7 +279,6 @@ function Postal:PickupContainerItem(bag, slot, special)
 		PostalFrame.slot = slot
 	end
 	self.hooks["PickupContainerItem"].orig(bag, slot)
-	self:UpdateItemButtons()
 end
 
 function Postal:UseContainerItem(bag, slot)
@@ -319,7 +305,6 @@ function Postal:UseContainerItem(bag, slot)
 
 				self.hooks["PickupContainerItem"].orig(bag, slot)
 				self:MailButton_OnClick(getglobal("PostalAttachment" .. i))
-				self:UpdateItemButtons()
 				return
 			end
 		end
@@ -376,39 +361,24 @@ function Postal:MailButton_OnClick(button)
 			PostalFrame.bag = nil
 			PostalFrame.slot = nil
 		end
-		local texture, count = GetContainerItemInfo(bag, slot)
-		-- getglobal(button:GetName() .. "IconTexture"):Show()
-		button:SetNormalTexture(texture)
-		if count > 1 then
-			getglobal(button:GetName() .. "Count"):SetText(count)
-			getglobal(button:GetName() .. "Count"):Show()
-		else
-			getglobal(button:GetName() .. "Count"):Hide()
-		end
+
 		button.bag = bag
 		button.slot = slot
-		button.texture = texture
-		button.count = count
 	elseif button.slot and button.bag then
 		self.hooks["PickupContainerItem"].orig(button.bag, button.slot)
-		-- getglobal(button:GetName() .. "IconTexture"):Hide()
-		button:SetNormalTexture(nil)
-		getglobal(button:GetName() .. "Count"):Hide()
+
 		PostalFrame.bag = button.bag
 		PostalFrame.slot = button.slot
 		button.slot = nil
 		button.bag = nil
-		button.count = nil
-		button.texture = nil
 	end
 
-	for i = 1, NUM_CONTAINER_FRAMES do
+	for i=1, NUM_CONTAINER_FRAMES do
 		if getglobal("ContainerFrame" .. i):IsVisible() then
 			ContainerFrame_Update(getglobal("ContainerFrame" .. i))
 		end
 	end
 
-	-- NEW
 	Postal:SendMailFrame_Update()
 end
 
@@ -426,38 +396,6 @@ function Postal:ItemIsMailable(bag, slot)
 		end
 	end
 	return nil
-end
-
-
-function Postal:UpdateItemButtons(frame)
-	local i
-	for i = 1, POSTAL_NUMITEMBUTTONS do
-		local btn = getglobal("PostalAttachment" .. i)
-		if not frame or btn ~= frame then
-			local texture, count
-			if btn.slot and btn.bag then
-				texture, count = GetContainerItemInfo(btn.bag, btn.slot)
-			end
-			if not texture then
-				btn:SetNormalTexture(nil)
-				getglobal(btn:GetName().."Count"):Hide()
-				btn.slot = nil
-				btn.bag = nil
-				btn.count = nil
-				btn.texture = nil
-			else
-				btn.count = count
-				btn.texture = texture
-				btn:SetNormalTexture(texture)
-				if count > 1 then
-					getglobal(btn:GetName().."Count"):Show()
-					getglobal(btn:GetName().."Count"):SetText(count)
-				else
-					getglobal(btn:GetName().."Count"):Hide()
-				end
-			end
-		end
-	end
 end
 
 function Postal:GetItemFrame(bag, slot)
@@ -489,11 +427,8 @@ function Postal:ClearItems()
 	for i = 1, POSTAL_NUMITEMBUTTONS do
 		local btn = getglobal("PostalAttachment" .. i)
 		btn.slot = nil
-		btn.count = nil
 		btn.bag = nil
-		btn.texture = nil
 	end
-	self:UpdateItemButtons()
 	PostalMailButton:Disable()
 	SendMailNameEditBox:SetText('')
 	SendMailNameEditBox:SetFocus()
@@ -566,7 +501,7 @@ function Postal:SendMail()
 	PostalGlobalFrame:Hide()
 end
 
-function Postal:FillItemTable()
+function Postal:AttachmentList()
 	local arr = {}
 	for i = 1, POSTAL_NUMITEMBUTTONS do
 		local btn = getglobal("PostalAttachment" .. i)
@@ -778,24 +713,3 @@ end
 
 function Postal:DummyFunction()
 end
-
--- local oldSMMFfunc = SendMailMoneyFrame.onvalueChangedFunc
--- SendMailMoneyFrame.onvalueChangedFunc = function()
--- 	if oldSMMFfunc then
--- 		oldSMMFfunc()
--- 	end
--- 	local subject = PostalSubjectEditBox:GetText()
--- 	if subject == "" or string.find(subject, "%[%d+G, %d+S, %d+C%]") then
--- 		local copper, silver, gold = SendMailMoneyFrameCopper:GetText(), SendMailMoneyFrameSilver:GetText(), SendMailMoneyFrameGold:GetText()
--- 		if not tonumber(copper) then
--- 			copper = 0
--- 		end
--- 		if not tonumber(silver) then
--- 			silver = 0
--- 		end
--- 		if not tonumber(gold) then
--- 			gold = 0
--- 		end
--- 		PostalSubjectEditBox:SetText(format("[%sG, %sS, %sC]", gold, silver, copper))
--- 	end
--- end
