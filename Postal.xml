@@ -100,11 +100,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 				</Offset>
 			</Anchor>
 		</Anchors>
-		<Scripts>
-			<OnClick>
-				SendMailMailButton_OnClick();
-			</OnClick>
-		</Scripts>
 	</Button>
 
 	<Button name="PostalAttachment" virtual="true">
@@ -155,13 +150,13 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 				this:RegisterForDrag('LeftButton')
 			</OnLoad>
 			<OnReceiveDrag>
-				Postal:MailButton_OnClick()
+				Postal:AttachmentButton_OnClick()
 			</OnReceiveDrag>
 			<OnDragStart>
-				Postal:MailButton_OnClick()
+				Postal:AttachmentButton_OnClick()
 			</OnDragStart>
 			<OnClick>
-				Postal:MailButton_OnClick()
+				Postal:AttachmentButton_OnClick()
 			</OnClick>
 			<OnEnter>
 				GameTooltip:SetOwner(this, 'ANCHOR_RIGHT')

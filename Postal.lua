@@ -17,12 +17,15 @@ function Postal:OnInitialize()
 	end
 
 	MailItem1:SetPoint("TOPLEFT", "InboxFrame", "TOPLEFT", 48, -80)
-	for i = 1, 7 do
+	for i=1,7 do
 		getglobal("MailItem" .. i .. "ExpireTime"):SetPoint("TOPRIGHT", "MailItem" .. i, "TOPRIGHT", 10, -4)
 		getglobal("MailItem" .. i):SetWidth(280)
 	end
 
-	POSTAL_NUMITEMBUTTONS = 21
+	ATTACHMENTS_MAX = 21
+	ATTACHMENTS_PER_ROW_SEND = 7
+	ATTACHMENTS_MAX_ROWS_SEND = 3
+
 	Postal_SelectedItems = {}
 
 	PostalGlobalFrame.sendmail = 0
@@ -34,17 +37,12 @@ function Postal:SendMailFrame_Update()
 
 	MoneyFrame_Update('SendMailCostMoneyFrame', GetSendMailPrice() * max(1, self:GetNumMails()))
 
-	ATTACHMENTS_PER_ROW_SEND = 7
-	ATTACHMENTS_MAX_SEND = 21
-	ATTACHMENTS_MAX = 21
-	ATTACHMENTS_MAX_ROWS_SEND = 3
-
 	local itemCount = 0
 	local itemTitle
 	local gap
 	-- local last = 0
 	local last = self:GetNumMails()
-	for i=1, ATTACHMENTS_MAX_SEND do
+	for i=1,ATTACHMENTS_MAX do
 		local btn = getglobal('PostalAttachment' .. i)
 
 		local texture, count
@@ -122,7 +120,7 @@ function Postal:SendMailFrame_Update()
 
 
 		-- Set Items
-	for i=1, ATTACHMENTS_MAX_SEND do
+	for i=1,ATTACHMENTS_MAX do
 		if cursory >= 0 then
 			getglobal("PostalAttachment"..i):Enable()
 			getglobal("PostalAttachment"..i):Show()
@@ -137,7 +135,7 @@ function Postal:SendMailFrame_Update()
 			getglobal("PostalAttachment"..i):Hide()
 		end
 	end
-	for i=ATTACHMENTS_MAX_SEND+1, ATTACHMENTS_MAX do
+	for i=ATTACHMENTS_MAX+1,ATTACHMENTS_MAX do
 		getglobal("PostalAttachment"..i):Hide()
 	end
 
@@ -154,21 +152,21 @@ function Postal:SendMailFrame_Update()
 end
 
 function Postal:OnEnable()
-	self:RegisterEvent("UI_ERROR_MESSAGE")
-	self:RegisterEvent("MAIL_SEND_SUCCESS")
-	self:RegisterEvent("MAIL_CLOSED")
+	self:RegisterEvent('UI_ERROR_MESSAGE')
+	self:RegisterEvent('MAIL_SEND_SUCCESS')
+	self:RegisterEvent('MAIL_CLOSED')
 
-	self:Hook("ContainerFrameItemButton_OnClick")
-	self:Hook("PickupContainerItem")
-	self:Hook("UseContainerItem")
-	self:Hook("SendMailFrame_Update")
+	self:Hook('ContainerFrameItemButton_OnClick')
+	self:Hook('PickupContainerItem')
+	self:Hook('UseContainerItem')
+	self:Hook('SendMailFrame_Update')
 	self:Hook('SendMailFrame_CanSend')
-	self:Hook("ContainerFrame_Update")
-	self:Hook("ClickSendMailItemButton")
-	self:HookScript(TradeFrame, "OnShow", "TF_Show")
-	self:Hook("InboxFrameItem_OnEnter")
-	self:Hook("InboxFrame_Update")
-	self:Hook("CloseMail")
+	self:Hook('ContainerFrame_Update')
+	self:Hook('InboxFrame_OnClick')
+	self:Hook('ClickSendMailItemButton')
+	self:HookScript(TradeFrame, 'OnShow', 'TF_Show')
+	self:Hook('InboxFrameItem_OnEnter')
+	self:Hook('InboxFrame_Update')
 
 	SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
 	PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
@@ -237,12 +235,13 @@ function Postal:OnEnable()
 end
 
 function Postal:MAIL_CLOSED()
+	PostalGlobalFrame:Hide()
+	Postal:Inbox_Abort()
 	Postal:ClearItems()
-	PostalGlobalFrame.total = 0
-	PostalGlobalFrame.queue = {}
+
 	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
 	-- Does not scan past the first 50 items since only the first 50 are viewable.
-	for i = 1, GetInboxNumItems() do
+	for i=1,GetInboxNumItems() do
 		local wasRead = ({ GetInboxHeaderInfo(i) })[9]
 		if not wasRead then
 			return
@@ -264,14 +263,15 @@ function Postal:MAIL_SEND_SUCCESS()
 end
 
 function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
-	if self:GetItemFrame(this:GetParent():GetID(), this:GetID()) then
+	local bag, slot = this:GetParent():GetID(), this:GetID()
+	if self:GetAttachmentFrame(bag, slot) or self:QueuedAttachment(bag, slot) then
 		return
 	end
 	self.hooks["ContainerFrameItemButton_OnClick"].orig(btn, ignore)
 end
 
 function Postal:PickupContainerItem(bag, slot, special)
-	if (self:GetItemFrame(bag, slot) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == slot)) and not special then
+	if (self:GetAttachmentFrame(bag, slot) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == slot)) and not special then
 		return
 	end
 	if not CursorHasItem() then
@@ -286,7 +286,7 @@ function Postal:UseContainerItem(bag, slot)
 		return self.hooks["UseContainerItem"].orig(bag, slot)
 	end
 
-	if self:GetItemFrame(bag, slot) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == slot) then
+	if self:GetAttachmentFrame(bag, slot) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == slot) then
 		return
 	end
 	if not CursorHasItem() then
@@ -295,7 +295,7 @@ function Postal:UseContainerItem(bag, slot)
 	end
 	if SendMailFrame:IsVisible() and not CursorHasItem() then
 		local i
-		for i = 1, POSTAL_NUMITEMBUTTONS do
+		for i = 1, ATTACHMENTS_MAX do
 			if not getglobal("PostalAttachment" .. i).slot then
 
 				if self:ItemIsMailable(bag, slot) then
@@ -304,7 +304,7 @@ function Postal:UseContainerItem(bag, slot)
 				end
 
 				self.hooks["PickupContainerItem"].orig(bag, slot)
-				self:MailButton_OnClick(getglobal("PostalAttachment" .. i))
+				self:AttachmentButton_OnClick(getglobal("PostalAttachment" .. i))
 				return
 			end
 		end
@@ -339,7 +339,7 @@ function Postal:ClickSendMailItemButton()
 end
 
 -- Handle the dragging of items
-function Postal:MailButton_OnClick(button)
+function Postal:AttachmentButton_OnClick(button)
 	if not button then button = this end
 	if CursorHasItem() then
 		local bag = PostalFrame.bag
@@ -373,7 +373,7 @@ function Postal:MailButton_OnClick(button)
 		button.bag = nil
 	end
 
-	for i=1, NUM_CONTAINER_FRAMES do
+	for i=1,NUM_CONTAINER_FRAMES do
 		if getglobal("ContainerFrame" .. i):IsVisible() then
 			ContainerFrame_Update(getglobal("ContainerFrame" .. i))
 		end
@@ -384,12 +384,12 @@ end
 
 function Postal:ItemIsMailable(bag, slot)
 	-- Make sure tooltip is cleared
-	for i = 1, 29 do
+	for i=1,29 do
 		getglobal("PostalTooltipTextLeft" .. i):SetText("")
 	end
 
 	PostalTooltip:SetBagItem(bag, slot)
-	for i = 1, PostalTooltip:NumLines() do
+	for i=1,PostalTooltip:NumLines() do
 		local text = getglobal("PostalTooltipTextLeft" .. i):GetText()
 		if text == ITEM_SOULBOUND or text == ITEM_BIND_QUEST or text == ITEM_CONJURED or text == ITEM_BIND_ON_PICKUP then
 			return 1
@@ -398,21 +398,26 @@ function Postal:ItemIsMailable(bag, slot)
 	return nil
 end
 
-function Postal:GetItemFrame(bag, slot)
-	local i
-	for i = 1, POSTAL_NUMITEMBUTTONS do
+function Postal:GetAttachmentFrame(bag, slot)
+	for i=1,ATTACHMENTS_MAX do
 		local btn = getglobal("PostalAttachment" .. i)
 		if btn.slot == slot and btn.bag == bag then
 			return btn
 		end
 	end
-	return nil
+end
+
+function Postal:QueuedAttachment(bag, slot)
+	for _, attachment in ipairs(PostalGlobalFrame.queue or {}) do
+		if attachment.slot == slot and attachment.bag == bag then
+			return true
+		end
+	end
 end
 
 function Postal:GetNumMails()
-	local i
 	local num = 0
-	for i = 1, POSTAL_NUMITEMBUTTONS do
+	for i=1,ATTACHMENTS_MAX do
 		local btn = getglobal("PostalAttachment" .. i)
 		if btn.slot and btn.bag then
 			num = num + 1
@@ -422,9 +427,8 @@ function Postal:GetNumMails()
 end
 
 function Postal:ClearItems()
-	local i
 	local num = 0
-	for i = 1, POSTAL_NUMITEMBUTTONS do
+	for i=1,ATTACHMENTS_MAX do
 		local btn = getglobal("PostalAttachment" .. i)
 		btn.slot = nil
 		btn.bag = nil
@@ -478,6 +482,7 @@ function Postal:SendMail()
 
 			if not name then 
 				Postal:Print("Postal: " .. POSTAL_ERROR, 1, 0, 0)
+				PostalGlobalFrame:Hide()
 				return
 			end
 		end
@@ -503,7 +508,7 @@ end
 
 function Postal:AttachmentList()
 	local arr = {}
-	for i = 1, POSTAL_NUMITEMBUTTONS do
+	for i = 1, ATTACHMENTS_MAX do
 		local btn = getglobal("PostalAttachment" .. i)
 		if btn.slot and btn.bag then
 			tinsert(arr, { slot = btn.slot, bag = btn.bag })
@@ -531,7 +536,8 @@ function Postal:ContainerFrame_Update(frame)
 		local name = frame:GetName()
 		for j=1, frame.size, 1 do
 			local itemButton = getglobal(name.."Item"..j)
-			local locked = self:GetItemFrame(itemButton:GetParent():GetID(), itemButton:GetID()) or (Postal_addItem and Postal_addItem[1] == itemButton:GetParent():GetID() and Postal_addItem[2] == itemButton:GetID())
+			local bag, slot = itemButton:GetParent():GetID(), itemButton:GetID()
+			local locked = self:GetAttachmentFrame(bag, slot) or self:QueuedAttachment(bag, slot) or (Postal_addItem and Postal_addItem[1] == bag and Postal_addItem[2] == slot)
 			if locked then
 				SetItemButtonDesaturated(itemButton, true, 0.5, 0.5, 0.5)
 			end
@@ -646,11 +652,11 @@ function Postal_Inbox_OpenSelected(open_all)
 			tinsert(selected, i)
 		end
 	end
-	-- Postal:Inbox_DisableClicks(true)
-	-- PostalInboxFrame.num = true -- TODO remove
+	PostalInboxFrame.opening = true
+	Postal:Inbox_DisableClicks()
 	Postal.open.start(selected, function()
-		Postal:Inbox_DisableClicks(false)
-		PostalInboxFrame.num = false
+		PostalInboxFrame.opening = false
+		Postal:Inbox_DisableClicks()
 	end)
 	Postal_SelectedItems = {}
 end
@@ -672,44 +678,30 @@ function Postal:InboxFrame_Update()
 			end
 		end
 	end
-	if PostalInboxFrame.num then
-		Postal:Inbox_DisableClicks(1, 1)
+	Postal:Inbox_DisableClicks()
+end
+
+function Postal:Inbox_DisableClicks()
+	for i=1,7 do
+		getglobal('MailItem'..i..'ButtonIcon'):SetDesaturated(PostalInboxFrame.opening)
+		if PostalInboxFrame.opening then
+			getglobal('MailItem'..i..'Button'):SetChecked(nil)
+		end
 	end
 end
 
-function Postal:Inbox_DisableClicks(disable, loopPrevention)
-	if disable then
-		for i = 1, 7 do
-			getglobal("MailItem" .. i .. "ButtonIcon"):SetDesaturated(1)
-		end
-		if not self:IsHooked("InboxFrame_OnClick") then self:Hook("InboxFrame_OnClick", "DummyFunction") end
-	else
-		for i = 1, 7 do
-			getglobal("MailItem" .. i .. "ButtonIcon"):SetDesaturated(nil)
-		end
-		if not loopPrevention then
-			InboxFrame_Update()
-		end
-		if self:IsHooked("InboxFrame_OnClick") then self:Unhook("InboxFrame_OnClick") end
+function Postal:InboxFrame_OnClick(index)
+	if PostalInboxFrame.opening then
+		this:SetChecked(nil)
+		return
 	end
-end
-
-function Postal:InboxFrame_OnClick()
-	this:SetChecked(nil)
+	self.hooks['InboxFrame_OnClick'].orig(index)
 end
 
 function Postal:Inbox_Abort()
 	Postal.open.stop()
-	PostalInboxFrame.num = nil
+	PostalInboxFrame.opening = false
+	Postal:Inbox_DisableClicks()
 	PostalInboxFrame.id = {}
 	Postal_SelectedItems = {}
-	Postal:Inbox_DisableClicks()
-end
-
-function Postal:CloseMail()
-	self.hooks["CloseMail"].orig()
-	Postal:Inbox_Abort()
-end
-
-function Postal:DummyFunction()
 end
