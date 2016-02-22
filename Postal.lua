@@ -163,7 +163,6 @@ function Postal:OnEnable()
 	self:Hook('SendMailFrame_CanSend')
 	self:Hook('ContainerFrame_Update')
 	self:Hook('InboxFrame_OnClick')
-	self:HookScript(TradeFrame, 'OnShow', 'TF_Show')
 	self:Hook('InboxFrameItem_OnEnter')
 	self:Hook('InboxFrame_Update')
 
@@ -270,7 +269,7 @@ function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
 end
 
 function Postal:PickupContainerItem(bag, slot)
-	if (self:SelectedAttachment(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot)) then
+	if self:SelectedAttachment(bag, slot) then
 		return
 	end
 	if not CursorHasItem() then
@@ -285,7 +284,7 @@ function Postal:UseContainerItem(bag, slot)
 		return self.hooks["UseContainerItem"].orig(bag, slot)
 	end
 
-	if self:SelectedAttachment(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot) then
+	if self:SelectedAttachment(bag, slot) then
 		return
 	end
 	if not CursorHasItem() then
@@ -315,15 +314,6 @@ function Postal:UseContainerItem(bag, slot)
 				return
 			end
 		end
-	elseif not CursorHasItem() and (not TradeFrame or not TradeFrame:IsVisible()) and (not AuctionFrame or not AuctionFrame:IsVisible()) and UnitExists("target") and CheckInteractDistance("target", 2) and UnitIsFriend("player", "target") and UnitIsPlayer("target") then
-		InitiateTrade("target")
-		Postal_itemToTrade = { bag, slot, UnitName("target"), 2 }
-		for i = 1, NUM_CONTAINER_FRAMES do
-			if getglobal("ContainerFrame" .. i):IsVisible() then
-				ContainerFrame_Update(getglobal("ContainerFrame" .. i))
-			end
-		end
-		return
 	end
 
 	self.hooks["UseContainerItem"].orig(bag, slot)
@@ -518,8 +508,7 @@ function Postal:ContainerFrame_Update(frame)
 		for j=1, frame.size, 1 do
 			local itemButton = getglobal(name.."Item"..j)
 			local bag, slot = itemButton:GetParent():GetID(), itemButton:GetID()
-			local locked = self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot)
-			if locked then
+			if self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) then
 				SetItemButtonDesaturated(itemButton, true, 0.5, 0.5, 0.5)
 			end
 		end
@@ -558,30 +547,6 @@ function Postal:InboxFrameItem_OnEnter()
 		end
 	end
 	GameTooltip:Show()
-end
-
-function Postal:TF_Show()
-	self.hooks[TradeFrame].OnShow.orig()
-	if Postal_itemToTrade and not CursorHasItem() and UnitName("NPC") == Postal_itemToTrade[3] then
-		self.hooks["PickupContainerItem"].orig(Postal_itemToTrade[1], Postal_itemToTrade[2])
-		
-		ClickTradeButton(1)
-	end
-	Postal_itemToTrade = nil
-end
-
-function Postal:Inbox_OnUpdate(elapsed)
-	if Postal_itemToTrade then
-		Postal_itemToTrade[4] = Postal_itemToTrade[4] - elapsed
-		if Postal_itemToTrade[4] <= 0 then
-			Postal_itemToTrade = nil
-			for i = 1, NUM_CONTAINER_FRAMES do
-				if getglobal("ContainerFrame" .. i):IsVisible() then
-					ContainerFrame_Update(getglobal("ContainerFrame" .. i))
-				end
-			end
-		end
-	end
 end
 
 function Postal:UI_ERROR_MESSAGE()
@@ -683,6 +648,5 @@ function Postal:Inbox_Abort()
 	Postal.open.stop()
 	PostalInboxFrame.opening = false
 	Postal:Inbox_DisableClicks()
-	PostalInboxFrame.id = {}
 	Postal_SelectedItems = {}
 end

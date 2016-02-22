@@ -207,11 +207,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	</Frame>
 
 	<Frame name="PostalInboxFrame" parent="UIParent">
-		<Scripts>
-			<OnUpdate>
-				Postal:Inbox_OnUpdate(arg1)
-			</OnUpdate>
-		</Scripts>
 	</Frame>
 	<CheckButton name="PostalBoxItemCBTemplate" hidden="true" virtual="true" inherits="OptionsCheckButtonTemplate">
 		<HitRectInsets>
