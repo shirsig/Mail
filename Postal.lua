@@ -264,14 +264,14 @@ end
 
 function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
 	local bag, slot = this:GetParent():GetID(), this:GetID()
-	if self:GetAttachmentFrame(bag, slot) or self:QueuedAttachment(bag, slot) then
+	if self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) then
 		return
 	end
 	self.hooks["ContainerFrameItemButton_OnClick"].orig(btn, ignore)
 end
 
 function Postal:PickupContainerItem(bag, slot)
-	if (self:GetAttachmentFrame(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot)) then
+	if (self:SelectedAttachment(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot)) then
 		return
 	end
 	if not CursorHasItem() then
@@ -286,7 +286,7 @@ function Postal:UseContainerItem(bag, slot)
 		return self.hooks["UseContainerItem"].orig(bag, slot)
 	end
 
-	if self:GetAttachmentFrame(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot) then
+	if self:SelectedAttachment(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot) then
 		return
 	end
 	if not CursorHasItem() then
@@ -398,11 +398,11 @@ function Postal:ItemIsMailable(bag, slot)
 	return nil
 end
 
-function Postal:GetAttachmentFrame(bag, slot)
+function Postal:SelectedAttachment(bag, slot)
 	for i=1,ATTACHMENTS_MAX do
 		local btn = getglobal("PostalAttachment" .. i)
 		if btn.slot == slot and btn.bag == bag then
-			return btn
+			return true
 		end
 	end
 end
@@ -537,7 +537,7 @@ function Postal:ContainerFrame_Update(frame)
 		for j=1, frame.size, 1 do
 			local itemButton = getglobal(name.."Item"..j)
 			local bag, slot = itemButton:GetParent():GetID(), itemButton:GetID()
-			local locked = self:GetAttachmentFrame(bag, slot) or self:QueuedAttachment(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot)
+			local locked = self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) or (Postal_itemToTrade and Postal_itemToTrade[1] == bag and Postal_itemToTrade[2] == slot)
 			if locked then
 				SetItemButtonDesaturated(itemButton, true, 0.5, 0.5, 0.5)
 			end
