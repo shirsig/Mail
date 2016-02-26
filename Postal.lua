@@ -597,6 +597,7 @@ function Postal_Inbox_OpenSelected(open_all)
 		for _, i in Postal_SelectedItems do
 			tinsert(selected, i)
 		end
+		sort(selected)
 	end
 	PostalInboxFrame.opening = true
 	Postal:Inbox_DisableClicks()
