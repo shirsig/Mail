@@ -1,6 +1,6 @@
 Postal.open = {}
 
-local wait_for_update, open, process, inventory_count, stop
+local wait_for_update, open, process, stop
 
 local controller = (function()
 	local controller
@@ -48,39 +48,25 @@ end
 function open(i, inbox_count, k)
 	wait_for_update(function()
 		local _, _, _, _, money, COD_amount, _, has_item = GetInboxHeaderInfo(i)
-		if GetInboxNumItems() < inbox_count or COD_amount > 0 then
-			return k(COD_amount > 0)
+		if GetInboxNumItems() < inbox_count then
+			return k(false)
+		elseif COD_amount > 0 then
+			return k(true)
 		elseif has_item then
-			local inventory_count_before = inventory_count()
 			TakeInboxItem(i)
-			controller().wait(function() return inventory_count() > inventory_count_before end, function()
+			controller().wait(function() return not ({GetInboxHeaderInfo(i)})[8] or GetInboxNumItems() < inbox_count end, function()
 				return open(i, inbox_count, k)
 			end)
 		elseif money > 0 then
-			local money_before = GetMoney()
 			TakeInboxMoney(i)
-			controller().wait(function() return GetMoney() > money_before end, function()
+			controller().wait(function() return ({GetInboxHeaderInfo(i)})[5] == 0 or GetInboxNumItems() < inbox_count end, function()
 				return open(i, inbox_count, k)
 			end)
 		else
-			local inbox_count_before = GetInboxNumItems()
 			DeleteInboxItem(i)
-			controller().wait(function() return GetInboxNumItems() < inbox_count_before end, function()
+			controller().wait(function() return GetInboxNumItems() < inbox_count end, function()
 				return open(i, inbox_count, k)
 			end)
 		end
 	end)
-end
-
-function inventory_count()
-	local acc = 0
-	for bag = 0, 4 do
-		if GetBagName(bag) then
-			for slot = 1, GetContainerNumSlots(bag) do
-				local _, count = GetContainerItemInfo(bag, slot)
-				acc = acc + (count or 0)
-			end
-		end
-	end
-	return acc
 end
