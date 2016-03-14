@@ -308,6 +308,7 @@ function Postal:UseContainerItem(bag, slot)
 	end
 	if SendMailFrame:IsVisible() and not CursorHasItem() then
 		self:AttachItem(bag, slot)
+		return
 	elseif TradeFrame:IsVisible() and not CursorHasItem() then
 		for i = 1, 6 do
 			if not GetTradePlayerItemLink(i) then
