@@ -157,6 +157,7 @@ function Postal:OnEnable()
 	self:Hook('ContainerFrameItemButton_OnClick')
 	self:Hook('PickupContainerItem')
 	self:Hook('UseContainerItem')
+	self:Hook('ClickSendMailItemButton')
 	self:Hook('SendMailFrame_Update')
 	self:Hook('SendMailFrame_CanSend')
 	self:Hook('SetItemButtonDesaturated')
@@ -181,6 +182,7 @@ function Postal:OnEnable()
 		background:Hide()
 		local count = ({SendMailPackageButton:GetRegions()})[3]
 		count:Hide()
+		SendMailFrame:EnableMouse(false)
 		SendMailPackageButton:Disable()
 		SendMailPackageButton:SetScript('OnReceiveDrag', nil)
 		SendMailPackageButton:SetScript('OnDragStart', nil)
@@ -267,7 +269,7 @@ function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
 end
 
 function Postal:PickupContainerItem(bag, slot)
-	if self:SelectedAttachment(bag, slot) then
+	if self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) then
 		return
 	end
 	if not CursorHasItem() then
@@ -277,12 +279,28 @@ function Postal:PickupContainerItem(bag, slot)
 	self.hooks["PickupContainerItem"].orig(bag, slot)
 end
 
+function Postal:AttachItem(bag, slot)
+	for i = 1, ATTACHMENTS_MAX do
+		if not getglobal("PostalAttachment" .. i).slot then
+
+			if not self:ItemIsMailable(bag, slot) then
+				Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
+				return
+			end
+
+			self.hooks["PickupContainerItem"].orig(bag, slot)
+			self:AttachmentButton_OnClick(getglobal("PostalAttachment" .. i))
+			return
+		end
+	end
+end
+
 function Postal:UseContainerItem(bag, slot)
 	if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
 		return self.hooks["UseContainerItem"].orig(bag, slot)
 	end
 
-	if self:SelectedAttachment(bag, slot) then
+	if self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) then
 		return
 	end
 	if not CursorHasItem() then
@@ -290,20 +308,7 @@ function Postal:UseContainerItem(bag, slot)
 		PostalFrame.slot = slot
 	end
 	if SendMailFrame:IsVisible() and not CursorHasItem() then
-		local i
-		for i = 1, ATTACHMENTS_MAX do
-			if not getglobal("PostalAttachment" .. i).slot then
-
-				if not self:ItemIsMailable(bag, slot) then
-					Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
-					return
-				end
-
-				self.hooks["PickupContainerItem"].orig(bag, slot)
-				self:AttachmentButton_OnClick(getglobal("PostalAttachment" .. i))
-				return
-			end
-		end
+		self:AttachItem(bag, slot)
 	elseif TradeFrame:IsVisible() and not CursorHasItem() then
 		for i = 1, 6 do
 			if not GetTradePlayerItemLink(i) then
@@ -321,8 +326,7 @@ end
 function Postal:AttachmentButton_OnClick(button)
 	button = button or this
 	if CursorHasItem() then
-		local bag = PostalFrame.bag
-		local slot = PostalFrame.slot
+		local bag, slot = PostalFrame.bag, PostalFrame.slot
 		if not bag or not slot then return end
 		if not self:ItemIsMailable(bag, slot) then
 			Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
@@ -337,13 +341,12 @@ function Postal:AttachmentButton_OnClick(button)
 		if oldBag and oldSlot then
 			self:PickupContainerItem(oldBag, oldSlot)
 		else
-			PostalFrame.bag = nil
-			PostalFrame.slot = nil
+			PostalFrame.bag, PostalFrame.slot = nil, nil
 		end
 
-	elseif button.slot and button.bag then
-		self:PickupContainerItem(button.bag, button.slot)
-
+	elseif button.bag and button.slot then
+		PostalFrame.bag, PostalFrame.slot = button.bag, button.slot
+		self.hooks["PickupContainerItem"].orig(button.bag, button.slot)
 		button.bag, button.slot = nil, nil
 	end
 
@@ -418,6 +421,16 @@ function Postal:SendMailFrame_CanSend()
 	end
 end
 
+-- handle the weird built-in mail body textbox onclick
+function Postal:ClickSendMailItemButton()
+	ClearCursor()
+	Postal.control.as_soon_as(function() return not ({GetContainerItemInfo(PostalFrame.bag or 0, PostalFrame.slot or 0)})[3] end, function()
+		if PostalFrame.bag and PostalFrame.slot then
+			self:AttachItem(PostalFrame.bag, PostalFrame.slot)
+		end
+	end)
+end
+
 function Postal:SendMail()
 
 	local item = tremove(this.queue, 1)
@@ -431,10 +444,10 @@ function Postal:SendMail()
 
 		if item then
 			ClearCursor()
-			ClickSendMailItemButton()
+			self.hooks["ClickSendMailItemButton"].orig()
 			ClearCursor()
 			self.hooks["PickupContainerItem"].orig(item.bag, item.slot)
-			ClickSendMailItemButton()
+			self.hooks["ClickSendMailItemButton"].orig()
 
 			local name, _, count = GetSendMailItem()
 
