@@ -28,8 +28,6 @@ function Postal:OnInitialize()
 
 	Postal_SelectedItems = {}
 
-	PostalGlobalFrame.sendmail = 0
-
 	PostalTooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
 end
 
@@ -161,7 +159,7 @@ function Postal:OnEnable()
 	self:Hook('UseContainerItem')
 	self:Hook('SendMailFrame_Update')
 	self:Hook('SendMailFrame_CanSend')
-	self:Hook('ContainerFrame_Update')
+	self:Hook('SetItemButtonDesaturated')
 	self:Hook('InboxFrame_OnClick')
 	self:Hook('InboxFrameItem_OnEnter')
 	self:Hook('InboxFrame_Update')
@@ -296,7 +294,7 @@ function Postal:UseContainerItem(bag, slot)
 		for i = 1, ATTACHMENTS_MAX do
 			if not getglobal("PostalAttachment" .. i).slot then
 
-				if self:ItemIsMailable(bag, slot) then
+				if not self:ItemIsMailable(bag, slot) then
 					Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
 					return
 				end
@@ -321,30 +319,28 @@ end
 
 -- Handle the dragging of items
 function Postal:AttachmentButton_OnClick(button)
-	if not button then button = this end
+	button = button or this
 	if CursorHasItem() then
 		local bag = PostalFrame.bag
 		local slot = PostalFrame.slot
 		if not bag or not slot then return end
-		if self:ItemIsMailable(bag, slot) then
+		if not self:ItemIsMailable(bag, slot) then
 			Postal:Print("Postal: Cannot attach item.", 1, 0.5, 0)
-			self.hooks["PickupContainerItem"].orig(bag, slot)
+			ClearCursor()
 			return
 		end
-		self.hooks["PickupContainerItem"].orig(bag, slot)
-		if this.bag and this.slot then
-			-- There's already an item there
-			-- Pickup that item to replicate Send Mail's behaviour
-			self.hooks["PickupContainerItem"].orig(button.bag, button.slot)
-			PostalFrame.bag = button.bag
-			PostalFrame.slot = button.slot
+
+		local oldBag, oldSlot = button.bag, button.slot
+		button.bag, button.slot = bag, slot
+		ClearCursor() -- triggers lock changed event
+
+		if oldBag and oldSlot then
+			self:PickupContainerItem(oldBag, oldSlot)
 		else
 			PostalFrame.bag = nil
 			PostalFrame.slot = nil
 		end
 
-		button.bag = bag
-		button.slot = slot
 	elseif button.slot and button.bag then
 		self.hooks["PickupContainerItem"].orig(button.bag, button.slot)
 
@@ -352,12 +348,6 @@ function Postal:AttachmentButton_OnClick(button)
 		PostalFrame.slot = button.slot
 		button.slot = nil
 		button.bag = nil
-	end
-
-	for i=1,NUM_CONTAINER_FRAMES do
-		if getglobal("ContainerFrame" .. i):IsVisible() then
-			ContainerFrame_Update(getglobal("ContainerFrame" .. i))
-		end
 	end
 
 	Postal:SendMailFrame_Update()
@@ -373,10 +363,10 @@ function Postal:ItemIsMailable(bag, slot)
 	for i=1,PostalTooltip:NumLines() do
 		local text = getglobal("PostalTooltipTextLeft" .. i):GetText()
 		if text == ITEM_SOULBOUND or text == ITEM_BIND_QUEST or text == ITEM_CONJURED or text == ITEM_BIND_ON_PICKUP then
-			return 1
+			return false
 		end
 	end
-	return nil
+	return true
 end
 
 function Postal:SelectedAttachment(bag, slot)
@@ -492,27 +482,16 @@ function Postal:ProcessQueue(elapsed)
 	if not POSTAL_CANSENDNEXT then
 		return
 	end
-	this.sendmail = this.sendmail + elapsed
-	if this.sendmail > 0.5 then
-		this.sendmail = 0
-
-		self:SendMail()
-		POSTAL_CANSENDNEXT = nil
-	end
+	POSTAL_CANSENDNEXT = nil
+	self:SendMail()
 end
 
-function Postal:ContainerFrame_Update(frame)
-	self.hooks["ContainerFrame_Update"].orig(frame)
-	Postal.control.on_next_update(function() 
-		local name = frame:GetName()
-		for j=1, frame.size, 1 do
-			local itemButton = getglobal(name.."Item"..j)
-			local bag, slot = itemButton:GetParent():GetID(), itemButton:GetID()
-			if self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) then
-				SetItemButtonDesaturated(itemButton, true, 0.5, 0.5, 0.5)
-			end
-		end
-	end)
+function Postal:SetItemButtonDesaturated(itemButton, locked)
+	local bag, slot = itemButton:GetParent():GetID(), itemButton:GetID()
+	if self:SelectedAttachment(bag, slot) or self:QueuedAttachment(bag, slot) then
+		return self.hooks["SetItemButtonDesaturated"].orig(itemButton, true)
+	end
+	return self.hooks["SetItemButtonDesaturated"].orig(itemButton, locked)
 end
 
 function Postal:InboxFrameItem_OnEnter()
