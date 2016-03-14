@@ -342,12 +342,9 @@ function Postal:AttachmentButton_OnClick(button)
 		end
 
 	elseif button.slot and button.bag then
-		self.hooks["PickupContainerItem"].orig(button.bag, button.slot)
+		self:PickupContainerItem(button.bag, button.slot)
 
-		PostalFrame.bag = button.bag
-		PostalFrame.slot = button.slot
-		button.slot = nil
-		button.bag = nil
+		button.bag, button.slot = nil, nil
 	end
 
 	Postal:SendMailFrame_Update()
