@@ -182,7 +182,6 @@ function Postal:OnEnable()
 		background:Hide()
 		local count = ({SendMailPackageButton:GetRegions()})[3]
 		count:Hide()
-		SendMailFrame:EnableMouse(false)
 		SendMailPackageButton:Disable()
 		SendMailPackageButton:SetScript('OnReceiveDrag', nil)
 		SendMailPackageButton:SetScript('OnDragStart', nil)
