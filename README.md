@@ -1,6 +1,6 @@
 # Postal - WoW 1.12 addOn
 
-A lightweight extension to the default mail interface which
+A lightweight extension to the Blizzard mail interface which
 - **Automatically opens mails**
 - **Mails multiple items at once**
 
