@@ -14,7 +14,7 @@ This addOn solves all those problems, being **super fast**, adapting the **retai
 I started this as a modification of *grennon*'s GMail and named it after GMail's retail version.
 
 Note that due to limitations of the 1.12 API, behind the scenes, the items must be sent in separate mails.<br/>
-As a result of this __**COD will only apply to the first item**__ if multiple items are added.
+As a result of this _**COD will only apply to the first item**_ if multiple items are added.
 
 ![Alt text](http://i.imgur.com/sN0H39Z.png)
 
