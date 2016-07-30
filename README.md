@@ -4,7 +4,7 @@ A lightweight extension to the Blizzard mail interface which
 - **Automatically opens mails**
 - **Mails multiple items at once**
 
-**\<Left Click>**/**\<Left Drag>** to add items to the attachments.<br/>
+**\<Left Click>** or **\<Left Drag>** to add items to the attachments.<br/>
 **\<Left Click>** to add items to the trade frame. (not mail related but GMail had this shortcut, though it used Alt, and I decided to keep it)
 
 There were two very similar (to eachother) Vanilla mail addOns commonly found in collections: GMail and CT_MailMod. Both were using the same terrible mechanism for automation, unnecessarily making them extremely slow, had a rather ugly send interface and would not hide the "New Mail"-notifier after opening the last mail automatically.
