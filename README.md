@@ -1,8 +1,8 @@
 # Postal - WoW 1.12 addOn
 
-A lightweight extension to the default mail interface which lets you
-- **Automatically open mails**
-- **Mail multiple items at once**
+A lightweight extension to the default mail interface which
+- **Automatically opens mails**
+- **Mails multiple items at once**
 
 There were two very similar (to eachother) Vanilla mail addOns commonly found in collections: GMail and CT_MailMod. Both were using the same terrible mechanism for automation, unnecessarily making them extremely slow, had a rather ugly send interface and would not hide the "New Mail"-notifier after opening the last mail automatically.
 
