@@ -10,6 +10,3 @@ libs\AceEvent\AceEvent-2.0.lua
 libs\AceAddon\AceAddon-2.0.lua
 libs\AceHook\AceHook-2.0.lua
 Postal.xml
-util.lua
-control.xml
-open.lua

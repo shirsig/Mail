@@ -3,9 +3,9 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<Script file="Postal.lua"/>
 	<frame>
 		<Scripts>
-			<OnLoad>
-				Postal_MiniMapMailFrame_Show_Orig = MiniMapMailFrame.Show
-			</OnLoad>
+			<OnUpdate>
+				Postal:UPDATE()
+			</OnUpdate>
 		</Scripts>
 	</frame>
 
@@ -156,8 +156,8 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</OnClick>
 			<OnEnter>
 				GameTooltip:SetOwner(this, 'ANCHOR_RIGHT')
-				if this.bag and this.slot then
-					GameTooltip:SetBagItem(this.bag, this.slot)
+				if this.item then
+					GameTooltip:SetBagItem(unpack(this.item))
 				else
 					GameTooltip:SetText(ATTACHMENT_TEXT, 1.0, 1.0, 1.0)
 				end
@@ -200,14 +200,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<Button name="PostalAttachment20" parent="SendMailFrame" inherits="PostalAttachment"/>
 	<Button name="PostalAttachment21" parent="SendMailFrame" inherits="PostalAttachment"/>
 
-	<Frame name="PostalFrame" parent="MailFrame" hidden="true">
-		<Size>
-			<AbsDimension x="384" y="512"/>
-		</Size>
-	</Frame>
-
-	<Frame name="PostalInboxFrame" parent="UIParent">
-	</Frame>
 	<CheckButton name="PostalBoxItemCBTemplate" hidden="true" virtual="true" inherits="OptionsCheckButtonTemplate">
 		<HitRectInsets>
 			<AbsInset left="0" right="0" top="0" bottom="0"/>
@@ -224,10 +216,11 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Anchors>
 		<Scripts>
 			<OnClick>
-				Postal_Inbox_SetSelected()
+				Postal:Inbox_SetSelected()
 			</OnClick>
 		</Scripts>
 	</CheckButton>
+
 	<CheckButton name="PostalBoxItem1CB" id="1" hidden="true" parent="MailItem1" inherits="PostalBoxItemCBTemplate"/>
 	<CheckButton name="PostalBoxItem2CB" id="2" hidden="true" parent="MailItem2" inherits="PostalBoxItemCBTemplate"/>
 	<CheckButton name="PostalBoxItem3CB" id="3" hidden="true" parent="MailItem3" inherits="PostalBoxItemCBTemplate"/>
@@ -235,6 +228,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<CheckButton name="PostalBoxItem5CB" id="5" hidden="true" parent="MailItem5" inherits="PostalBoxItemCBTemplate"/>
 	<CheckButton name="PostalBoxItem6CB" id="6" hidden="true" parent="MailItem6" inherits="PostalBoxItemCBTemplate"/>
 	<CheckButton name="PostalBoxItem7CB" id="7" hidden="true" parent="MailItem7" inherits="PostalBoxItemCBTemplate"/>
+
 	<Button name="PostalInboxOpenSelected" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="Open Selected">
 		<Size>
 			<AbsDimension x="120" y="25"/>
@@ -248,10 +242,11 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Anchors>
 		<Scripts>
 			<OnClick>
-				Postal_Inbox_OpenSelected()
+				Postal:Inbox_OpenSelected()
 			</OnClick>
 		</Scripts>
 	</Button>
+
 	<Button name="PostalInboxOpenAllButton" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="Open All">
 		<Size>
 			<AbsDimension x="120" y="25"/>
@@ -265,17 +260,8 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Anchors>
 		<Scripts>
 			<OnClick>
-				Postal_Inbox_OpenSelected(true)
+				Postal:Inbox_OpenSelected(true)
 			</OnClick>
 		</Scripts>
 	</Button>
-	
-	<Frame name="PostalGlobalFrame" parent="UIParent" hidden="true">
-		<Scripts>
-			<OnUpdate>
-				Postal:ProcessQueue(arg1)
-			</OnUpdate>
-		</Scripts>
-	</Frame>
-	<GameTooltip name="PostalTooltip" inherits="GameTooltipTemplate"></GameTooltip>
 </Ui>
