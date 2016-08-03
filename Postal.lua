@@ -1,4 +1,4 @@
-local Postal = CreateFrame('Frame', nil, MailFrame)
+Postal = CreateFrame('Frame', nil, MailFrame)
 Postal:SetScript('OnUpdate', function()
 	this:UPDATE()
 end)
@@ -55,15 +55,15 @@ do
 		return CursorHasItem() and lastPickedUp
 	end
 
-	function Postal:PickupContainerItem(bag, slot)
+	function Postal.PickupContainerItem(bag, slot)
 		local item = {bag, slot}
-		if self:SendMail_Attached(item) then
+		if Postal:SendMail_Attached(item) then
 			return
 		end
-        self:Wait(function()
+        Postal:Wait(function()
             lastPickedUp = item
         end)
-		return self.PickupContainerItem_Orig(unpack(item))
+		return Postal.PickupContainerItem_Orig(unpack(item))
 	end
 end
 
@@ -226,13 +226,13 @@ function Postal:ADDON_LOADED()
     SendMailFrame_Update()
 end
 
-function Postal:SendMailFrame_Update()
+function Postal.SendMailFrame_Update()
 
     local itemCount = 0
     local itemTitle
     local gap
     -- local last = 0
-    local last = self:SendMail_NumAttachments()
+    local last = Postal:SendMail_NumAttachments()
 
 	for i=1,ATTACHMENTS_MAX do
 		local btn = getglobal('PostalAttachment' .. i)
@@ -256,7 +256,7 @@ function Postal:SendMailFrame_Update()
 		end
 	end
 
-    if self:SendMail_NumAttachments() > 0 then
+    if Postal:SendMail_NumAttachments() > 0 then
         SendMailCODButton:Enable()
         SendMailCODButtonText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
     else
@@ -265,7 +265,7 @@ function Postal:SendMailFrame_Update()
         SendMailCODButtonText:SetTextColor(GRAY_FONT_COLOR.r, GRAY_FONT_COLOR.g, GRAY_FONT_COLOR.b)
     end
 
-    MoneyFrame_Update('SendMailCostMoneyFrame', GetSendMailPrice() * max(1, self:SendMail_NumAttachments()))
+    MoneyFrame_Update('SendMailCostMoneyFrame', GetSendMailPrice() * max(1, Postal:SendMail_NumAttachments()))
 
 	-- Determine how many rows of attachments to show
 	local itemRowCount = 1
@@ -336,15 +336,15 @@ function Postal:SendMailFrame_Update()
 		end
 	end
 
-	self:SendMailFrame_CanSend()
+	SendMailFrame_CanSend()
 end
 
-function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
+function Postal.ContainerFrameItemButton_OnClick(btn, ignore)
 	local item = {this:GetParent():GetID(), this:GetID()}
-	if self:SendMail_Attached(item) then
+	if Postal:SendMail_Attached(item) then
 		return
 	else
-	    return self.ContainerFrameItemButton_OnClick_Orig(btn, ignore)
+	    return Postal.ContainerFrameItemButton_OnClick_Orig(btn, ignore)
     end
 end
 
@@ -400,41 +400,41 @@ function Postal:SendMail_AttachItem(item)
 end
 
 -- handle the weird built-in mail body textbox onclick
-function Postal:ClickSendMailItemButton()
-    self:SendMail_AttachItem(self:CursorItem())
+function Postal.ClickSendMailItemButton()
+    Postal:SendMail_AttachItem(Postal:CursorItem())
     ClearCursor()
 end
 
-function Postal:SetItemButtonDesaturated(itemButton, locked)
+function Postal.SetItemButtonDesaturated(itemButton, locked)
     local item = { itemButton:GetParent():GetID(), itemButton:GetID() }
-    if self:SendMail_Attached(item) then
-        return self.SetItemButtonDesaturated_Orig(itemButton, true)
+    if Postal:SendMail_Attached(item) then
+        return Postal.SetItemButtonDesaturated_Orig(itemButton, true)
     end
-    return self.SetItemButtonDesaturated_Orig(itemButton, locked)
+    return Postal.SetItemButtonDesaturated_Orig(itemButton, locked)
 end
 
-function Postal:UseContainerItem(bag, slot)
+function Postal.UseContainerItem(bag, slot)
     local item = {bag, slot}
-    if self:SendMail_Attached(item) then
+    if Postal:SendMail_Attached(item) then
         return
     end
 
     if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
-        self.UseContainerItem_Orig(unpack(item))
+        Postal.UseContainerItem_Orig(unpack(item))
     elseif SendMailFrame:IsVisible() then
-        self:SendMail_AttachItem(item)
-        self.PickupContainerItem_Orig(unpack(item))
+        Postal:SendMail_AttachItem(item)
+        Postal.PickupContainerItem_Orig(unpack(item))
         ClearCursor()
     elseif TradeFrame:IsVisible() then
         for i = 1,6 do
             if not GetTradePlayerItemLink(i) then
-                self.PickupContainerItem_Orig(unpack(item))
+                Postal.PickupContainerItem_Orig(unpack(item))
                 ClickTradeButton(i)
                 return
             end
         end
     else
-        self.UseContainerItem_Orig(unpack(item))
+        Postal.UseContainerItem_Orig(unpack(item))
     end
 end
 
@@ -484,8 +484,8 @@ function Postal:SendMail_Clear()
 	SendMailRadioButton_OnClick(1)
 end
 
-function Postal:SendMailFrame_CanSend()
-	if strlen(SendMailNameEditBox:GetText()) > 0 and (SendMailSendMoneyButton:GetChecked() and MoneyInputFrame_GetCopper(SendMailMoney) or 0) + GetSendMailPrice() * max(1, self:SendMail_NumAttachments()) <= GetMoney() then
+function Postal.SendMailFrame_CanSend()
+	if strlen(SendMailNameEditBox:GetText()) > 0 and (SendMailSendMoneyButton:GetChecked() and MoneyInputFrame_GetCopper(SendMailMoney) or 0) + GetSendMailPrice() * max(1, Postal:SendMail_NumAttachments()) <= GetMoney() then
 		PostalMailButton:Enable()
 	else
 		PostalMailButton:Disable()
@@ -532,13 +532,13 @@ function Postal:SendMail_Send()
     end
 end
 
-function Postal:InboxFrameItem_OnEnter()
-	local didSetTooltip
+function Postal.InboxFrameItem_OnEnter()
+	local tooltipSet
 	GameTooltip:SetOwner(this, 'ANCHOR_RIGHT')
 	if this.index then
 		if GetInboxItem(this.index) then
 			GameTooltip:SetInboxItem(this.index)
-			didSetTooltip = 1
+			tooltipSet = true
 		end
 	end
 	if this.money then
@@ -554,7 +554,7 @@ function Postal:InboxFrameItem_OnEnter()
 			SetMoneyFrameColor('GameTooltipMoneyFrame', HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 		end
 	end
-	if didSetTooltip and (this.money or this.cod) then
+	if tooltipSet and (this.money or this.cod) then
 		GameTooltip:SetHeight(GameTooltip:GetHeight()+getglobal('GameTooltipTextLeft' .. GameTooltip:NumLines()):GetHeight())
 		if GameTooltipMoneyFrame:IsVisible() then
 			GameTooltip:SetHeight(GameTooltip:GetHeight()+GameTooltipMoneyFrame:GetHeight())
@@ -630,18 +630,18 @@ function Postal:Inbox_OpenItem(i, inboxCount, selected)
 	end)
 end
 
-function Postal:InboxFrame_Update()
-	self.InboxFrame_Update_Orig()
+function Postal.InboxFrame_Update()
+	Postal.InboxFrame_Update_Orig()
 	for i = 1,7 do
 		local index = (i + (InboxFrame.pageNum - 1) * 7)
 		if index > GetInboxNumItems() then
 			getglobal('PostalBoxItem'..i..'CB'):Hide()
 		else
 			getglobal('PostalBoxItem'..i..'CB'):Show()
-			getglobal('PostalBoxItem'..i..'CB'):SetChecked(self.Inbox_selectedItems[index])
+			getglobal('PostalBoxItem'..i..'CB'):SetChecked(Postal.Inbox_selectedItems[index])
 		end
 	end
-	self:Inbox_Lock()
+	Postal:Inbox_Lock()
 end
 
 function Postal:Inbox_Lock()
@@ -653,12 +653,12 @@ function Postal:Inbox_Lock()
 	end
 end
 
-function Postal:InboxFrame_OnClick(index)
-	if self.Inbox_Opening then
+function Postal.InboxFrame_OnClick(index)
+	if Postal.Inbox_Opening then
 		this:SetChecked(nil)
 		return
 	else
-		return self.InboxFrame_OnClick_Orig(index)
+		return Postal.InboxFrame_OnClick_Orig(index)
 	end
 end
 
