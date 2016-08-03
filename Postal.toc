@@ -2,10 +2,4 @@
 ## Title: Postal
 ## Notes: Postal
 ## Author: shirsig
-## OptionalDeps: Ace2
-libs\AceLibrary\AceLibrary.lua
-libs\AceOO\AceOO-2.0.lua
-libs\AceEvent\AceEvent-2.0.lua
-libs\AceAddon\AceAddon-2.0.lua
-libs\AceHook\AceHook-2.0.lua
 Postal.xml

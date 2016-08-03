@@ -1,4 +1,11 @@
-Postal = AceLibrary('AceAddon-2.0'):new('AceEvent-2.0', 'AceHook-2.0')
+local Postal = CreateFrame('Frame', nil, MailFrame)
+Postal:SetScript('OnUpdate', function()
+	this:UPDATE()
+end)
+Postal:SetScript('OnEvent', function()
+	this[event](this)
+end)
+Postal:RegisterEvent('ADDON_LOADED')
 
 local ATTACHMENTS_MAX = 21
 local ATTACHMENTS_PER_ROW_SEND = 7
@@ -56,7 +63,7 @@ do
         self:Wait(function()
             lastPickedUp = item
         end)
-		return self.hooks['PickupContainerItem'].orig(unpack(item))
+		return self.PickupContainerItem_Orig(unpack(item))
 	end
 end
 
@@ -95,22 +102,57 @@ function Postal:Print(msg, r, g, b)
 	DEFAULT_CHAT_FRAME:AddMessage(msg, r, g, b)
 end
 
-function Postal:OnEnable()
+function Postal:ADDON_LOADED()
+	if arg1 ~= 'Postal' then
+		return
+	end
+
+	UIPanelWindows['MailFrame'].pushable = 1
+	UIPanelWindows['FriendsFrame'].pushable = 2
+
+	MailItem1:SetPoint('TOPLEFT', 'InboxFrame', 'TOPLEFT', 48, -80)
+	for i=1,7 do
+		getglobal('MailItem' .. i .. 'ExpireTime'):SetPoint('TOPRIGHT', 'MailItem' .. i, 'TOPRIGHT', 10, -4)
+		getglobal('MailItem' .. i):SetWidth(280)
+	end
+
+    CreateFrame('GameTooltip', 'PostalTooltip', nil, 'GameTooltipTemplate')
+    PostalTooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
+
     self:RegisterEvent('UI_ERROR_MESSAGE')
     self:RegisterEvent('MAIL_SEND_SUCCESS')
     self:RegisterEvent('MAIL_CLOSED')
     self:RegisterEvent('CURSOR_UPDATE')
 
-    self:Hook('ContainerFrameItemButton_OnClick')
-    self:Hook('PickupContainerItem')
-    self:Hook('UseContainerItem')
-    self:Hook('ClickSendMailItemButton')
-    self:Hook('SendMailFrame_Update')
-    self:Hook('SendMailFrame_CanSend')
-    self:Hook('SetItemButtonDesaturated')
-    self:Hook('InboxFrame_OnClick')
-    self:Hook('InboxFrameItem_OnEnter')
-    self:Hook('InboxFrame_Update')
+    self.ContainerFrameItemButton_OnClick_Orig = ContainerFrameItemButton_OnClick
+    ContainerFrameItemButton_OnClick = self.ContainerFrameItemButton_OnClick
+
+    self.PickupContainerItem_Orig = PickupContainerItem
+    PickupContainerItem = self.PickupContainerItem
+
+    self.UseContainerItem_Orig = UseContainerItem
+    UseContainerItem = self.UseContainerItem
+
+    self.ClickSendMailItemButton_Orig = ClickSendMailItemButton
+    ClickSendMailItemButton = self.ClickSendMailItemButton
+
+    self.SendMailFrame_Update_Orig = SendMailFrame_Update
+    SendMailFrame_Update = self.SendMailFrame_Update
+
+    self.SendMailFrame_CanSend_Orig = SendMailFrame_CanSend
+    SendMailFrame_CanSend = self.SendMailFrame_CanSend
+
+    self.SetItemButtonDesaturated_Orig = SetItemButtonDesaturated
+    SetItemButtonDesaturated = self.SetItemButtonDesaturated
+
+    self.InboxFrame_OnClick_Orig = InboxFrame_OnClick
+    InboxFrame_OnClick = self.InboxFrame_OnClick
+
+    self.InboxFrameItem_OnEnter_Orig = InboxFrameItem_OnEnter
+    InboxFrameItem_OnEnter = self.InboxFrameItem_OnEnter
+
+    self.InboxFrame_Update_Orig = InboxFrame_Update
+    InboxFrame_Update = self.InboxFrame_Update
 
     SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
     PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
@@ -178,25 +220,10 @@ function Postal:OnEnable()
         end
     end)
 
-    SendMailFrame_Update()
-end
-
-function Postal:OnInitialize()
-
-	UIPanelWindows['MailFrame'].pushable = 1
-	UIPanelWindows['FriendsFrame'].pushable = 2
-
-	MailItem1:SetPoint('TOPLEFT', 'InboxFrame', 'TOPLEFT', 48, -80)
-	for i=1,7 do
-		getglobal('MailItem' .. i .. 'ExpireTime'):SetPoint('TOPRIGHT', 'MailItem' .. i, 'TOPRIGHT', 10, -4)
-		getglobal('MailItem' .. i):SetWidth(280)
-	end
-
-    CreateFrame('GameTooltip', 'PostalTooltip', nil, 'GameTooltipTemplate')
-    PostalTooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
-
     self.Inbox_selectedItems = {}
     self.SendMail_Ready = true
+
+    SendMailFrame_Update()
 end
 
 function Postal:SendMailFrame_Update()
@@ -317,7 +344,7 @@ function Postal:ContainerFrameItemButton_OnClick(btn, ignore)
 	if self:SendMail_Attached(item) then
 		return
 	else
-	    return self.hooks['ContainerFrameItemButton_OnClick'].orig(btn, ignore)
+	    return self.ContainerFrameItemButton_OnClick_Orig(btn, ignore)
     end
 end
 
@@ -381,9 +408,9 @@ end
 function Postal:SetItemButtonDesaturated(itemButton, locked)
     local item = { itemButton:GetParent():GetID(), itemButton:GetID() }
     if self:SendMail_Attached(item) then
-        return self.hooks['SetItemButtonDesaturated'].orig(itemButton, true)
+        return self.SetItemButtonDesaturated_Orig(itemButton, true)
     end
-    return self.hooks['SetItemButtonDesaturated'].orig(itemButton, locked)
+    return self.SetItemButtonDesaturated_Orig(itemButton, locked)
 end
 
 function Postal:UseContainerItem(bag, slot)
@@ -393,21 +420,21 @@ function Postal:UseContainerItem(bag, slot)
     end
 
     if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
-        self.hooks['UseContainerItem'].orig(unpack(item))
+        self.UseContainerItem_Orig(unpack(item))
     elseif SendMailFrame:IsVisible() then
         self:SendMail_AttachItem(item)
-        self.hooks['PickupContainerItem'].orig(unpack(item))
+        self.PickupContainerItem_Orig(unpack(item))
         ClearCursor()
     elseif TradeFrame:IsVisible() then
         for i = 1,6 do
             if not GetTradePlayerItemLink(i) then
-                self.hooks['PickupContainerItem'].orig(unpack(item))
+                self.PickupContainerItem_Orig(unpack(item))
                 ClickTradeButton(i)
                 return
             end
         end
     else
-        self.hooks['UseContainerItem'].orig(unpack(item))
+        self.UseContainerItem_Orig(unpack(item))
     end
 end
 
@@ -477,10 +504,10 @@ function Postal:SendMail_Send()
 
 		if item then
 			ClearCursor()
-			self.hooks['ClickSendMailItemButton'].orig()
+			self.ClickSendMailItemButton_Orig()
 			ClearCursor()
-			self.hooks['PickupContainerItem'].orig(unpack(item))
-			self.hooks['ClickSendMailItemButton'].orig()
+			self.PickupContainerItem_Orig(unpack(item))
+			self.ClickSendMailItemButton_Orig()
 
 			if not GetSendMailItem() then
                 return self:Print('Postal: An error occured in POSTAL. This might be related to lag, trying to send items with an item placed in the normal send mail window, or trying to send items that cannot be sent.', 1, 0, 0)
@@ -604,7 +631,7 @@ function Postal:Inbox_OpenItem(i, inboxCount, selected)
 end
 
 function Postal:InboxFrame_Update()
-	self.hooks['InboxFrame_Update'].orig()
+	self.InboxFrame_Update_Orig()
 	for i = 1,7 do
 		local index = (i + (InboxFrame.pageNum - 1) * 7)
 		if index > GetInboxNumItems() then
@@ -631,7 +658,7 @@ function Postal:InboxFrame_OnClick(index)
 		this:SetChecked(nil)
 		return
 	else
-		return self.hooks['InboxFrame_OnClick'].orig(index)
+		return self.InboxFrame_OnClick_Orig(index)
 	end
 end
 
