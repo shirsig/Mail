@@ -14,7 +14,6 @@ do
         end
 
         if self.Send_State and self.Send_Ready then
-            self.Send_Ready = nil
             self:Send_SendMail()
         end
     end
@@ -501,7 +500,8 @@ function Postal:Send_SendMail()
 					SetSendMailMoney(self.Send_State.money)
 				end
 			end
-		end
+        end
+        self.Send_Ready = nil
 		return SendMail(self.Send_State.to, subject, self.Send_State.body)
     else
         self.Send_State = nil
