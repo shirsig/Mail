@@ -1,5 +1,4 @@
 ﻿## Interface: 11200
-## Version: 1.0
 ## Title: Postal
 ## Notes: Postal
 ## Author: shirsig

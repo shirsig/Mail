@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<Script file="Postal.lua"/>
-	<frame>
+	<frame parent="MailFrame">
 		<Scripts>
 			<OnUpdate>
 				Postal:UPDATE()
@@ -165,15 +165,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			<OnLeave>
 				GameTooltip:Hide()
 			</OnLeave>
-<!--
-			<OnEnter>
-				SendMailAttachment_OnEnter(self, motion);
-			</OnEnter>
-			<OnUpdate>
-				if ( GameTooltip:IsOwned(self) ) then
-					SendMailAttachment_OnEnter(self);
-				end
-			</OnUpdate>-->
 		</Scripts>
 		<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
 	</Button>
