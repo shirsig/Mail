@@ -75,7 +75,7 @@ function Postal:MAIL_CLOSED()
 	MiniMapMailFrame:Hide()
 end
 
-function Postal:MAIL_SENDMAIL_SUCCESS()
+function Postal:MAIL_SEND_SUCCESS()
 	self.SendMail_Ready = true
 end
 
@@ -97,7 +97,7 @@ end
 
 function Postal:OnEnable()
     self:RegisterEvent('UI_ERROR_MESSAGE')
-    self:RegisterEvent('MAIL_SENDMAIL_SUCCESS')
+    self:RegisterEvent('MAIL_SEND_SUCCESS')
     self:RegisterEvent('MAIL_CLOSED')
     self:RegisterEvent('CURSOR_UPDATE')
 
