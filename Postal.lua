@@ -119,40 +119,11 @@ function Postal:ADDON_LOADED()
     CreateFrame('GameTooltip', 'PostalTooltip', nil, 'GameTooltipTemplate')
     PostalTooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
 
+    self:RegisterEvent('VARIABLES_LOADED')
     self:RegisterEvent('UI_ERROR_MESSAGE')
     self:RegisterEvent('MAIL_SEND_SUCCESS')
     self:RegisterEvent('MAIL_CLOSED')
     self:RegisterEvent('CURSOR_UPDATE')
-
-    self.ContainerFrameItemButton_OnClick_Orig = ContainerFrameItemButton_OnClick
-    ContainerFrameItemButton_OnClick = self.ContainerFrameItemButton_OnClick
-
-    self.PickupContainerItem_Orig = PickupContainerItem
-    PickupContainerItem = self.PickupContainerItem
-
-    self.UseContainerItem_Orig = UseContainerItem
-    UseContainerItem = self.UseContainerItem
-
-    self.ClickSendMailItemButton_Orig = ClickSendMailItemButton
-    ClickSendMailItemButton = self.ClickSendMailItemButton
-
-    self.SendMailFrame_Update_Orig = SendMailFrame_Update
-    SendMailFrame_Update = self.SendMailFrame_Update
-
-    self.SendMailFrame_CanSend_Orig = SendMailFrame_CanSend
-    SendMailFrame_CanSend = self.SendMailFrame_CanSend
-
-    self.SetItemButtonDesaturated_Orig = SetItemButtonDesaturated
-    SetItemButtonDesaturated = self.SetItemButtonDesaturated
-
-    self.InboxFrame_OnClick_Orig = InboxFrame_OnClick
-    InboxFrame_OnClick = self.InboxFrame_OnClick
-
-    self.InboxFrameItem_OnEnter_Orig = InboxFrameItem_OnEnter
-    InboxFrameItem_OnEnter = self.InboxFrameItem_OnEnter
-
-    self.InboxFrame_Update_Orig = InboxFrame_Update
-    InboxFrame_Update = self.InboxFrame_Update
 
     SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
     PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
@@ -222,8 +193,38 @@ function Postal:ADDON_LOADED()
 
     self.Inbox_selectedItems = {}
     self.SendMail_Ready = true
+end
 
-    SendMailFrame_Update()
+function Postal:VARIABLES_LOADED()
+    self.ContainerFrameItemButton_OnClick_Orig = ContainerFrameItemButton_OnClick
+    ContainerFrameItemButton_OnClick = self.ContainerFrameItemButton_OnClick
+
+    self.PickupContainerItem_Orig = PickupContainerItem
+    PickupContainerItem = self.PickupContainerItem
+
+    self.UseContainerItem_Orig = UseContainerItem
+    UseContainerItem = self.UseContainerItem
+
+    self.ClickSendMailItemButton_Orig = ClickSendMailItemButton
+    ClickSendMailItemButton = self.ClickSendMailItemButton
+
+    self.SendMailFrame_Update_Orig = SendMailFrame_Update
+    SendMailFrame_Update = self.SendMailFrame_Update
+
+    self.SendMailFrame_CanSend_Orig = SendMailFrame_CanSend
+    SendMailFrame_CanSend = self.SendMailFrame_CanSend
+
+    self.SetItemButtonDesaturated_Orig = SetItemButtonDesaturated
+    SetItemButtonDesaturated = self.SetItemButtonDesaturated
+
+    self.InboxFrame_OnClick_Orig = InboxFrame_OnClick
+    InboxFrame_OnClick = self.InboxFrame_OnClick
+
+    self.InboxFrameItem_OnEnter_Orig = InboxFrameItem_OnEnter
+    InboxFrameItem_OnEnter = self.InboxFrameItem_OnEnter
+
+    self.InboxFrame_Update_Orig = InboxFrame_Update
+    InboxFrame_Update = self.InboxFrame_Update
 end
 
 function Postal.SendMailFrame_Update()
