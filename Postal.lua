@@ -196,11 +196,11 @@ function Postal:ADDON_LOADED()
 end
 
 function Postal:VARIABLES_LOADED()
-    self.ContainerFrameItemButton_OnClick_Orig = ContainerFrameItemButton_OnClick
-    ContainerFrameItemButton_OnClick = self.ContainerFrameItemButton_OnClick
-
     self.PickupContainerItem_Orig = PickupContainerItem
     PickupContainerItem = self.PickupContainerItem
+
+    self.SplitContainerItem_Orig = SplitContainerItem
+    SplitContainerItem = self.SplitContainerItem
 
     self.UseContainerItem_Orig = UseContainerItem
     UseContainerItem = self.UseContainerItem
@@ -340,15 +340,6 @@ function Postal.SendMailFrame_Update()
 	SendMailFrame_CanSend()
 end
 
-function Postal.ContainerFrameItemButton_OnClick(btn, ignore)
-	local item = {this:GetParent():GetID(), this:GetID()}
-	if Postal:SendMail_Attached(item) then
-		return
-	else
-	    return Postal.ContainerFrameItemButton_OnClick_Orig(btn, ignore)
-    end
-end
-
 function Postal:SendMail_Attached(item)
     for i=1,ATTACHMENTS_MAX do
         local btn = getglobal('PostalAttachment' .. i)
@@ -414,29 +405,38 @@ function Postal.SetItemButtonDesaturated(itemButton, locked)
     return Postal.SetItemButtonDesaturated_Orig(itemButton, locked)
 end
 
-function Postal.UseContainerItem(bag, slot)
-    local item = {bag, slot}
+function Postal.UseContainerItem(...)
+    local item = {arg[1], arg[2]}
     if Postal:SendMail_Attached(item) then
         return
     end
 
     if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
-        Postal.UseContainerItem_Orig(unpack(item))
+        Postal.UseContainerItem_Orig(unpack(arg))
     elseif SendMailFrame:IsVisible() then
         Postal:SendMail_AttachItem(item)
-        Postal.PickupContainerItem_Orig(unpack(item))
+        Postal.PickupContainerItem_Orig(unpack(arg))
         ClearCursor()
     elseif TradeFrame:IsVisible() then
-        for i = 1,6 do
+        for i=1,6 do
             if not GetTradePlayerItemLink(i) then
-                Postal.PickupContainerItem_Orig(unpack(item))
+                Postal.PickupContainerItem_Orig(unpack(arg))
                 ClickTradeButton(i)
                 return
             end
         end
     else
-        Postal.UseContainerItem_Orig(unpack(item))
+        Postal.UseContainerItem_Orig(unpack(arg))
     end
+end
+
+function Postal.SplitContainerItem(...)
+    local item = {arg[1], arg[2]}
+    if Postal:SendMail_Attached(item) then
+        return
+    end
+
+    return Postal.SplitContainerItem_Orig(unpack(arg))
 end
 
 function Postal:SendMail_Mailable(item)
