@@ -387,11 +387,11 @@ end
 
 -- requires an item lock changed event for a proper update
 function Postal:SendMail_AttachItem(item)
+    if not self:SendMail_Mailable(item) then
+        return self:Print('Postal: Cannot attach item.', 1, 0.5, 0)
+    end
 	for i = 1,ATTACHMENTS_MAX do
 		if not getglobal('PostalAttachment'..i).item then
-			if not self:SendMail_Mailable(item) then
-                return self:Print('Postal: Cannot attach item.', 1, 0.5, 0)
-            end
 			getglobal('PostalAttachment'..i).item = item
             SendMailFrame_Update()
             return
@@ -439,7 +439,6 @@ function Postal.UseContainerItem(bag, slot)
 end
 
 function Postal:SendMail_Mailable(item)
---	PostalTooltip:ClearLines() TODO
 	PostalTooltip:SetBagItem(unpack(item))
 	for i=1,PostalTooltip:NumLines() do
 		local text = getglobal('PostalTooltipTextLeft' .. i):GetText()
