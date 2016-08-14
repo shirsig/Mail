@@ -161,14 +161,15 @@ function self:ADDON_LOADED()
 	    end)
 	    do
 	        local lastClick
-		    editBox:SetScript('OnMouseUp', function()
+		    editBox:SetScript('OnMouseDown', function()
 	            local x, y = GetCursorPosition()
 	            if lastClick and GetTime() - lastClick.t < .5 and x == lastClick.x and y == lastClick.y then
-		            lastClick = nil
-	                this:HighlightText()
-	            else
-	                lastClick = {t=GetTime(), x=x, y=y}
+	            	this:SetScript('OnUpdate', function()
+	            		this:HighlightText()
+	            		this:SetScript('OnUpdate', nil)
+	            	end)
 	            end
+	            lastClick = {t=GetTime(), x=x, y=y}
 	        end)
     	end
 	end
