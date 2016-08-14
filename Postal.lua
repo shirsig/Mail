@@ -430,7 +430,6 @@ end
 
 function self.hook.ClickSendMailItemButton()
     self:SendMail_SetAttachment(self:GetCursorItem())
-    ClearCursor()
 end
 
 function self.hook.GetContainerItemInfo(...)
@@ -460,8 +459,6 @@ function self.hook.UseContainerItem(...)
         return self.orig.UseContainerItem(unpack(arg))
     elseif SendMailFrame:IsVisible() then
         self:SendMail_SetAttachment(item)
-        self.orig.PickupContainerItem(unpack(arg)) -- for the lock changed event
-        ClearCursor()
     elseif TradeFrame:IsVisible() then
         for i=1,6 do
             if not GetTradePlayerItemLink(i) then
@@ -521,7 +518,6 @@ function self:AttachmentButton_OnClick()
 	local attachedItem = this.item
 	local cursorItem = self:GetCursorItem()
 	if self:SendMail_SetAttachment(cursorItem, this) then
-	    ClearCursor()
 		if attachedItem then
 			if arg1 == 'LeftButton' then self:SetCursorItem(attachedItem) end
 			self.orig.PickupContainerItem(unpack(attachedItem))
@@ -533,7 +529,7 @@ end
 
 -- requires an item lock changed event for a proper update
 function self:SendMail_SetAttachment(item, slot)
-    if item and not self:SendMail_Mailable(item) then return end
+    if item and not self:SendMail_PickupMailable(item) then return end
     if not slot then
 		for i=1,ATTACHMENTS_MAX do
 			if not getglobal('PostalAttachment'..i).item then
@@ -544,12 +540,13 @@ function self:SendMail_SetAttachment(item, slot)
 	end
 	if slot then
 		slot.item = item
+		ClearCursor()
 	    SendMailFrame_Update()
 	    return true
 	end
 end
 
-function self:SendMail_Mailable(item)
+function self:SendMail_PickupMailable(item)
 	ClearCursor()
 	self.orig.ClickSendMailItemButton()
 	ClearCursor()
@@ -557,7 +554,6 @@ function self:SendMail_Mailable(item)
 	self.orig.ClickSendMailItemButton()
 	local mailable = GetSendMailItem() and true or false
 	self.orig.ClickSendMailItemButton()
-	ClearCursor()
 	return mailable
 end
 
