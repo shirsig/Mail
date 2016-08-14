@@ -267,7 +267,7 @@ function self:Inbox_OpenSelected(all)
 
 	local selected = {}
 	if all then
-		for i = 1,GetInboxNumItems() do
+		for i=1,GetInboxNumItems() do
 			tinsert(selected, i)
 		end
 	else
@@ -514,7 +514,6 @@ function self.PostalMailButton_OnClick()
 	}
 
 	self:SendMail_Clear()
-	SendMailFrame_Update()
 
 	self:When(function()
 		return self.SendMail_ready
@@ -549,14 +548,14 @@ function self:AttachmentButton_OnClick()
 			self.orig.PickupContainerItem(unpack(attachedItem))
 			if arg1 ~= 'LeftButton' then ClearCursor() end -- for the lock changed event
 	    end
-	    SendMailFrame_Update()
 	end
 end
 
 -- requires an item lock changed event for a proper update
 function self:SendMail_SetAttachment(item, slot)
-    if item and not self:SendMail_PickupMailable(item) then return end
-    if not slot then
+	if item and not self:SendMail_PickupMailable(item) then
+		return
+    elseif not slot then
 		for i=1,ATTACHMENTS_MAX do
 			if not getglobal('PostalAttachment'..i).item then
 				slot = getglobal('PostalAttachment'..i)
@@ -565,6 +564,7 @@ function self:SendMail_SetAttachment(item, slot)
 		end
 	end
 	if slot then
+		if not (item or slot.item) then return true end
 		slot.item = item
 		ClearCursor()
 	    SendMailFrame_Update()
@@ -615,6 +615,8 @@ function self:SendMail_Clear()
 	SendMailBodyEditBox:SetText('')
 	MoneyInputFrame_ResetMoney(SendMailMoney)
 	SendMailRadioButton_OnClick(1)
+
+	SendMailFrame_Update()
 end
 
 function self:SendMail_Send()
