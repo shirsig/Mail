@@ -127,9 +127,8 @@ function self:ADDON_LOADED()
         SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
     end
 
-    -- hack to avoid automatic subject setting/button enabling
-    PostalMailButton = SendMailMailButton
     SendMailMailButton_OnClick = self.PostalMailButton_OnClick
+    -- hack to avoid automatic subject setting
     PostalSubjectEditBox = SendMailSubjectEditBox
     SendMailSubjectEditBox = setmetatable({}, {
     	__index = function(_, key)
@@ -423,9 +422,9 @@ end
 
 function self.hook.SendMailFrame_CanSend()
 	if strlen(SendMailNameEditBox:GetText()) > 0 and (SendMailSendMoneyButton:GetChecked() and MoneyInputFrame_GetCopper(SendMailMoney) or 0) + GetSendMailPrice() * max(1, self:SendMail_NumAttachments()) <= GetMoney() then
-		PostalMailButton:Enable()
+		SendMailMailButton:Enable()
 	else
-		PostalMailButton:Disable()
+		SendMailMailButton:Disable()
 	end
 end
 
@@ -587,7 +586,7 @@ function self:SendMail_Clear()
 	for i=1,ATTACHMENTS_MAX do
         getglobal('PostalAttachment'..i).item = nil
 	end
-	PostalMailButton:Disable()
+	SendMailMailButton:Disable()
 	SendMailNameEditBox:SetText('')
 	SendMailNameEditBox:SetFocus()
 	PostalSubjectEditBox:SetText('')
