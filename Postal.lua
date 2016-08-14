@@ -98,9 +98,6 @@ function self:ADDON_LOADED()
 		getglobal('MailItem' .. i):SetWidth(280)
 	end
 
-    CreateFrame('GameTooltip', 'PostalTooltip', nil, 'GameTooltipTemplate')
-    PostalTooltip:SetOwner(WorldFrame, 'ANCHOR_NONE')
-
     SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
     PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
     PostalHorizontalBarLeft:SetWidth(256)
@@ -537,10 +534,7 @@ end
 
 -- requires an item lock changed event for a proper update
 function self:SendMail_SetAttachment(item, slot)
-    if item and not self:SendMail_Mailable(item) then
-        self:Print('Cannot attach item.', 1, 0.5, 0)
-        return
-    end
+    if item and not self:SendMail_Mailable(item) then return end
     if not slot then
 		for i=1,ATTACHMENTS_MAX do
 			if not getglobal('PostalAttachment'..i).item then
@@ -557,14 +551,12 @@ function self:SendMail_SetAttachment(item, slot)
 end
 
 function self:SendMail_Mailable(item)
-	PostalTooltip:SetBagItem(unpack(item))
-	for i=1,PostalTooltip:NumLines() do
-		local text = getglobal('PostalTooltipTextLeft' .. i):GetText()
-		if text == ITEM_SOULBOUND or text == ITEM_BIND_QUEST or text == ITEM_CONJURED or text == ITEM_BIND_ON_PICKUP then
-			return false
-		end
-	end
-	return true
+	ClearCursor()
+	self.orig.ClickSendMailItemButton()
+	ClearCursor()
+	self.orig.PickupContainerItem(unpack(item))
+	self.orig.ClickSendMailItemButton()
+	return GetSendMailItem()
 end
 
 function self:SendMail_NumAttachments()
