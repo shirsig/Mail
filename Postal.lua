@@ -136,24 +136,42 @@ function self:ADDON_LOADED()
     	end,
     })
 
-    do
-    	local orig = SendMailNameEditBox.SetText
-    	function SendMailNameEditBox:SetText(...)
-    		if not Postal_To then
-    			return orig(SendMailNameEditBox, unpack(arg))
-			end
-    	end
-		SendMailNameEditBox:SetScript('OnEditFocusGained', function()
-			if Postal_To then
-				orig(SendMailNameEditBox, Postal_To)
-			end
-			this:HighlightText()
-	    end)
+	SendMailNameEditBox._SetText = SendMailNameEditBox.SetText
+	function SendMailNameEditBox:SetText(...)
+		if not Postal_To then
+			return self:_SetText(unpack(arg))
+		end
 	end
+	SendMailNameEditBox:SetScript('OnShow', function()
+		if Postal_To then
+			this:_SetText(Postal_To)
+		end
+    end)
 	SendMailNameEditBox:SetScript('OnChar', function()
 		Postal_To = nil
 		SendMailFrame_SendeeAutocomplete()
     end)
+
+	for _, editBox in {SendMailNameEditBox, SendMailSubjectEditBox} do
+		editBox:SetScript('OnEditFocusGained', function()
+			this:HighlightText()
+	    end)
+	    editBox:SetScript('OnEditFocusLost', function()
+	    	this:HighlightText(0, 0)
+	    end)
+	    do
+	        local lastClick
+		    editBox:SetScript('OnMouseUp', function()
+	            local x, y = GetCursorPosition()
+	            if lastClick and GetTime() - lastClick.t < .5 and x == lastClick.x and y == lastClick.y then
+		            lastClick = nil
+	                this:HighlightText()
+	            else
+	                lastClick = {t=GetTime(), x=x, y=y}
+	            end
+	        end)
+    	end
+	end
 
     self.Inbox_selectedItems = {}
     self.SendMail_ready = true
@@ -161,9 +179,15 @@ end
 
 function self:VARIABLES_LOADED()
 	self:Hook(
+		'OpenMail_Reply',
 		'InboxFrame_Update','InboxFrame_OnClick', 'InboxFrameItem_OnEnter',
 		'SendMailFrame_Update', 'SendMailFrame_CanSend', 'ClickSendMailItemButton', 'GetContainerItemInfo', 'PickupContainerItem', 'SplitContainerItem', 'UseContainerItem'
 	)
+end
+
+function self.hook.OpenMail_Reply(...)
+	Postal_To = nil
+	return self.orig.OpenMail_Reply(unpack(arg))
 end
 
 function self:Print(msg, r, g, b)
