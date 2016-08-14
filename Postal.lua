@@ -20,7 +20,6 @@ end
 
 do
     local state
-
     function self:UPDATE()
         if state and state.predicate() then
             local callback = state.callback
@@ -28,15 +27,12 @@ do
             return callback()
         end
     end
-
     function self:When(predicate, callback)
         state = {predicate = predicate, callback = callback}
     end
-
     function self:Wait(callback)
         state = {predicate = function() return true end, callback = callback}
     end
-
     function self:Kill()
         state = nil
     end
@@ -44,19 +40,14 @@ end
 
 do
 	local cursorItem
-
     function self:CURSOR_UPDATE()
         cursorItem = nil
     end
-
 	function self:GetCursorItem()
 		return cursorItem
 	end
-
 	function self:SetCursorItem(item)
-        self:Wait(function()
-            cursorItem = item
-        end)
+        self:Wait(function() cursorItem = item end)
 	end
 end
 
@@ -78,17 +69,17 @@ function self:MAIL_CLOSED()
 end
 
 function self:MAIL_SEND_SUCCESS()
-	self.SendMail_Ready = true
+	self.SendMail_ready = true
 end
 
 function self:UI_ERROR_MESSAGE()
-	if self.Inbox_Opening then
+	if self.Inbox_opening then
 		if arg1 == ERR_INV_FULL then
 			self:Print('Inventory full. Aborting.', 1, 0, 0)
 			self:Abort()
 		elseif arg1 == ERR_ITEM_MAX_COUNT then
 			self:Print('You already have the maximum amount of that item. Skipping.', 1, 0, 0)
-			self.Inbox_Skip = true
+			self.Inbox_skip = true
 		end
 	end
 end
@@ -139,28 +130,36 @@ function self:ADDON_LOADED()
         SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
     end
 
-    PostalMailButton:SetScript('OnClick', self.PostalMailButton_OnClick)
-
     -- hack to avoid automatic subject setting/button enabling
-    SendMailMailButton:Hide()
-    SendMailSubjectEditBox:Hide()
-    SendMailSubjectEditBox.SetText = function(self, text) PostalSubjectEditBox:SetText(text) end
-    SendMailNameEditBox:SetScript('OnTabPressed', function()
-        PostalSubjectEditBox:SetFocus()
+    PostalMailButton = SendMailMailButton
+    SendMailMailButton_OnClick = self.PostalMailButton_OnClick
+    PostalSubjectEditBox = SendMailSubjectEditBox
+    SendMailSubjectEditBox = setmetatable({}, {
+    	__index = function(_, key)
+    		return function(_, ...)
+    			return PostalSubjectEditBox[key](PostalSubjectEditBox, unpack(arg))
+    		end
+    	end,
+    })
+
+    do
+    	local orig = SendMailNameEditBox.SetText
+    	function SendMailNameEditBox:SetText(...)
+    		if not Postal_To then
+    			return orig(SendMailNameEditBox, unpack(arg))
+			end
+    	end
+	end
+	SendMailNameEditBox:SetScript('OnEditFocusGained', function()
+		this:HighlightText()
     end)
-    SendMailNameEditBox:SetScript('OnEnterPressed', function()
-        PostalSubjectEditBox:SetFocus()
-    end)
-    SendMailBodyEditBox:SetScript('OnTabPressed', function()
-        if IsShiftKeyDown() then
-            PostalSubjectEditBox:SetFocus()
-        else
-            SendMailMoneyGold:SetFocus()
-        end
+	SendMailNameEditBox:SetScript('OnChar', function()
+		Postal_To = nil
+		SendMailFrame_SendeeAutocomplete()
     end)
 
     self.Inbox_selectedItems = {}
-    self.SendMail_Ready = true
+    self.SendMail_ready = true
 end
 
 function self:VARIABLES_LOADED()
@@ -180,7 +179,7 @@ end
 
 function self:Abort()
 	self:Kill()
-	self.Inbox_Opening = false
+	self.Inbox_opening = false
 	self:Inbox_Lock()
 end
 
@@ -199,7 +198,7 @@ function self.hook.InboxFrame_Update()
 end
 
 function self.hook.InboxFrame_OnClick(index)
-	if self.Inbox_Opening then
+	if self.Inbox_opening then
 		this:SetChecked(nil)
 	else
 		return self.orig.InboxFrame_OnClick(index)
@@ -257,14 +256,14 @@ function self:Inbox_OpenSelected(all)
 		sort(selected)
 	end
 	self.Inbox_selectedItems = {}
-	self.Inbox_Opening = true
+	self.Inbox_opening = true
 	self:Inbox_Lock()
 	self:Inbox_OpenMail(selected)
 end
 
 function self:Inbox_OpenMail(selected)
 	if getn(selected) == 0 then
-		self.Inbox_Opening = false
+		self.Inbox_opening = false
 		self:Inbox_Lock()
 	else
 		self:Inbox_OpenItem(selected[1], GetInboxNumItems(), selected)
@@ -276,8 +275,8 @@ function self:Inbox_OpenItem(i, inboxCount, selected)
 		local _, _, _, _, money, COD, _, item = GetInboxHeaderInfo(i)
 		local newInboxCount = GetInboxNumItems()
 
-		if newInboxCount < inboxCount or COD > 0 or self.Inbox_Skip then
-			self.Inbox_Skip = false
+		if newInboxCount < inboxCount or COD > 0 or self.Inbox_skip then
+			self.Inbox_skip = false
 			tremove(selected, 1)
 			if newInboxCount < inboxCount then
 				for j, _ in selected do
@@ -287,17 +286,17 @@ function self:Inbox_OpenItem(i, inboxCount, selected)
 			return self:Inbox_OpenMail(selected)
 		elseif item then
 			TakeInboxItem(i)
-			self:When(function() return not ({GetInboxHeaderInfo(i)})[8] or GetInboxNumItems() < inboxCount or self.Inbox_Skip end, function()
+			self:When(function() return not ({GetInboxHeaderInfo(i)})[8] or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
 				return self:Inbox_OpenItem(i, inboxCount, selected)
 			end)
 		elseif money > 0 then
 			TakeInboxMoney(i)
-			self:When(function() return ({GetInboxHeaderInfo(i)})[5] == 0 or GetInboxNumItems() < inboxCount or self.Inbox_Skip end, function()
+			self:When(function() return ({GetInboxHeaderInfo(i)})[5] == 0 or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
 				return self:Inbox_OpenItem(i, inboxCount, selected)
 			end)
 		else
 			DeleteInboxItem(i)
-			self:When(function() return GetInboxNumItems() < inboxCount or self.Inbox_Skip end, function()
+			self:When(function() return GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
 				return self:Inbox_OpenItem(i, inboxCount, selected)
 			end)
 		end
@@ -306,8 +305,8 @@ end
 
 function self:Inbox_Lock()
 	for i=1,7 do
-		getglobal('MailItem'..i..'ButtonIcon'):SetDesaturated(self.Inbox_Opening)
-		if self.Inbox_Opening then
+		getglobal('MailItem'..i..'ButtonIcon'):SetDesaturated(self.Inbox_opening)
+		if self.Inbox_opening then
 			getglobal('MailItem'..i..'Button'):SetChecked(nil)
 		end
 	end
@@ -483,8 +482,10 @@ end
 function self.PostalMailButton_OnClick()
 	self:Abort()
 
-	self.SendMail_State = {
-	    to = SendMailNameEditBox:GetText(),
+	Postal_To = SendMailNameEditBox:GetText()
+
+	self.SendMail_state = {
+	    to = Postal_To,
 	    subject = PostalSubjectEditBox:GetText(),
 	    body = SendMailBodyEditBox:GetText(),
 	    money = MoneyInputFrame_GetCopper(SendMailMoney),
@@ -497,7 +498,7 @@ function self.PostalMailButton_OnClick()
 	SendMailFrame_Update()
 
 	self:When(function()
-		return self.SendMail_Ready
+		return self.SendMail_ready
 	end, function()
 		self:SendMail_Send()
 	end)
@@ -510,10 +511,10 @@ function self:SendMail_Attached(item)
             return true
         end
     end
-    if not self.SendMail_State then
+    if not self.SendMail_state then
         return
     end
-    for _, attachment in self.SendMail_State.attachments do
+    for _, attachment in self.SendMail_state.attachments do
         if attachment.item and attachment.item[1] == item[1] and attachment.item[2] == item[2] then
             return true
         end
@@ -601,7 +602,7 @@ function self:SendMail_Clear()
 end
 
 function self:SendMail_Send()
-	for item in self:Present(tremove(self.SendMail_State.attachments, 1)) do
+	for item in self:Present(tremove(self.SendMail_state.attachments, 1)) do
 		ClearCursor()
 		self.orig.ClickSendMailItemButton()
 		ClearCursor()
@@ -613,27 +614,27 @@ function self:SendMail_Send()
 		end
 	end
 
-	for amount in self:Present(self.SendMail_State.money) do
-		self.SendMail_State.money = nil
-		if self.SendMail_State.cod then
+	for amount in self:Present(self.SendMail_state.money) do
+		self.SendMail_state.money = nil
+		if self.SendMail_state.cod then
 			SetSendMailCOD(amount)
 		else
 			SetSendMailMoney(amount)
 		end
 	end
 
-	local subject = self.SendMail_State.subject
+	local subject = self.SendMail_state.subject
 	subject = subject ~= '' and subject or '[No Subject]'
-	if self.SendMail_State.numMessages > 1 then
-		subject = subject..format(' (Part %d of %d)', self.SendMail_State.numMessages - getn(self.SendMail_State.attachments), self.SendMail_State.numMessages)
+	if self.SendMail_state.numMessages > 1 then
+		subject = subject..format(' (Part %d of %d)', self.SendMail_state.numMessages - getn(self.SendMail_state.attachments), self.SendMail_state.numMessages)
 	end
 
-    SendMail(self.SendMail_State.to, subject, self.SendMail_State.body)
-    self.SendMail_Ready = false
+    SendMail(self.SendMail_state.to, subject, self.SendMail_state.body)
+    self.SendMail_ready = false
 
-    if getn(self.SendMail_State.attachments) > 0 then
+    if getn(self.SendMail_state.attachments) > 0 then
 	    self:When(function()
-	    	return self.SendMail_Ready
+	    	return self.SendMail_ready
 	    end, function()
 	    	self:SendMail_Send()
 	    end)

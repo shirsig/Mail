@@ -2,4 +2,6 @@
 ## Title: Postal
 ## Notes: Postal
 ## Author: shirsig
+## SavedVariables: Postal_To
+
 Postal.xml
