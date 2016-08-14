@@ -556,7 +556,10 @@ function self:SendMail_Mailable(item)
 	ClearCursor()
 	self.orig.PickupContainerItem(unpack(item))
 	self.orig.ClickSendMailItemButton()
-	return GetSendMailItem()
+	local mailable = GetSendMailItem() and true or false
+	self.orig.ClickSendMailItemButton()
+	ClearCursor()
+	return mailable
 end
 
 function self:SendMail_NumAttachments()
