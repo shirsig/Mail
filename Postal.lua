@@ -1,12 +1,8 @@
 local self = CreateFrame('Frame', nil, MailFrame)
 Postal = self
-self:SetScript('OnUpdate', function()
-	this:UPDATE()
-end)
-self:SetScript('OnEvent', function()
-	this[event](this)
-end)
-for _, event in {'ADDON_LOADED', 'VARIABLES_LOADED', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS'} do
+self:SetScript('OnUpdate', function() this:UPDATE() end)
+self:SetScript('OnEvent', function() this[event](this) end)
+for _, event in {'ADDON_LOADED', 'VARIABLES_LOADED', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS'} do
 	self:RegisterEvent(event)
 end
 
@@ -34,17 +30,11 @@ do
     end
 
     function self:When(predicate, callback)
-        state = {
-            predicate = predicate,
-            callback = callback,
-        }
+        state = {predicate = predicate, callback = callback}
     end
 
     function self:Wait(callback)
-        state = {
-            predicate = function() return true end,
-            callback = callback,
-        }
+        state = {predicate = function() return true end, callback = callback}
     end
 
     function self:Kill()
@@ -70,6 +60,10 @@ do
 	end
 end
 
+function self:BAG_UPDATE()
+	SendMailFrame_Update()
+end
+
 function self:MAIL_CLOSED()
 	self:Abort()
 	self.Inbox_selectedItems = {}
@@ -78,9 +72,7 @@ function self:MAIL_CLOSED()
 	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
 	-- Does not scan past the first 50 items since only the first 50 are viewable.
 	for i=1,GetInboxNumItems() do
-		if not ({GetInboxHeaderInfo(i)})[9] then
-			return
-		end
+		if not ({GetInboxHeaderInfo(i)})[9] then return end
 	end
 	MiniMapMailFrame:Hide()
 end
@@ -174,7 +166,7 @@ end
 function self:VARIABLES_LOADED()
 	self:Hook(
 		'InboxFrame_Update','InboxFrame_OnClick', 'InboxFrameItem_OnEnter',
-		'SendMailFrame_Update', 'SendMailFrame_CanSend', 'ClickSendMailItemButton', 'SetItemButtonDesaturated', 'PickupContainerItem', 'SplitContainerItem', 'UseContainerItem'
+		'SendMailFrame_Update', 'SendMailFrame_CanSend', 'ClickSendMailItemButton', 'GetContainerItemInfo', 'PickupContainerItem', 'SplitContainerItem', 'UseContainerItem'
 	)
 end
 
@@ -325,7 +317,7 @@ function self.hook.SendMailFrame_Update()
     local itemCount = 0
     local itemTitle
     local gap
-    -- local last = 0
+    -- local last = 0 blizzlike
     local last = self:SendMail_NumAttachments()
 
 	for i=1,ATTACHMENTS_MAX do
@@ -449,13 +441,8 @@ end
 function self.hook.GetContainerItemInfo(...)
     local item = {arg[1], arg[2]}
     local ret = {self.orig.GetContainerItemInfo(unpack(arg))}
-    ret[3] = ret[3] or self.SendMail_Attached(item) 
+    ret[3] = ret[3] or self:SendMail_Attached(item) 
     return unpack(ret)
-end
-
-function self.hook.SetItemButtonDesaturated(itemButton, locked)
-    local item = {itemButton:GetParent():GetID(), itemButton:GetID()}
-    return self.orig.SetItemButtonDesaturated(itemButton, self:SendMail_Attached(item) or locked)
 end
 
 function self.hook.PickupContainerItem(...)
