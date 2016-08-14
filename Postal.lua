@@ -63,7 +63,7 @@ do
 		return cursorItem
 	end
 
-	function self:SetCursorItem(item) -- TODO
+	function self:SetCursorItem(item)
         self:Wait(function()
             cursorItem = item
         end)
@@ -442,8 +442,15 @@ function self.hook.SendMailFrame_CanSend()
 end
 
 function self.hook.ClickSendMailItemButton()
-    self:SendMail_AttachItem(self:GetCursorItem())
+    self:SendMail_SetAttachment(self:GetCursorItem())
     ClearCursor()
+end
+
+function self.hook.GetContainerItemInfo(...)
+    local item = {arg[1], arg[2]}
+    local ret = {self.orig.GetContainerItemInfo(unpack(arg))}
+    ret[3] = ret[3] or self.SendMail_Attached(item) 
+    return unpack(ret)
 end
 
 function self.hook.SetItemButtonDesaturated(itemButton, locked)
@@ -453,30 +460,24 @@ end
 
 function self.hook.PickupContainerItem(...)
 	local item = {arg[1], arg[2]}
-	if self:SendMail_Attached(item) then
-		return
-	end
-    self:SetCursorItem(item)
+	if self:SendMail_Attached(item) then return end
+	if GetContainerItemInfo(unpack(item)) then self:SetCursorItem(item) end
 	return self.orig.PickupContainerItem(unpack(arg))
 end
 
 function self.hook.SplitContainerItem(...)
     local item = {arg[1], arg[2]}
-    if self:SendMail_Attached(item) then
-        return
-    end
+    if self:SendMail_Attached(item) then return end
     return self.orig.SplitContainerItem(unpack(arg))
 end
 
 function self.hook.UseContainerItem(...)
     local item = {arg[1], arg[2]}
-    if self:SendMail_Attached(item) then
-        return
-    end
+    if self:SendMail_Attached(item) then return end
     if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
         return self.orig.UseContainerItem(unpack(arg))
     elseif SendMailFrame:IsVisible() then
-        self:SendMail_AttachItem(item)
+        self:SendMail_SetAttachment(item)
         self.orig.PickupContainerItem(unpack(arg)) -- for the lock changed event
         ClearCursor()
     elseif TradeFrame:IsVisible() then
@@ -535,35 +536,35 @@ end
 function self:AttachmentButton_OnClick()
 	local attachedItem = this.item
 	local cursorItem = self:GetCursorItem()
-	if cursorItem and not self:SendMail_Mailable(cursorItem) then
-        return self:Print('Cannot attach item.', 1, 0.5, 0)
-    end
-    this.item = cursorItem
-    ClearCursor()
-
-	if attachedItem then
-		if arg1 == 'LeftButton' then
-			self:SetCursorItem(attachedItem)
-		end
-		self.orig.PickupContainerItem(unpack(attachedItem))
-		if arg1 ~= 'LeftButton' then
-			ClearCursor() -- for the lock changed event
-		end
-    end
-    SendMailFrame_Update()
+	if self:SendMail_SetAttachment(cursorItem, this) then
+	    ClearCursor()
+		if attachedItem then
+			if arg1 == 'LeftButton' then self:SetCursorItem(attachedItem) end
+			self.orig.PickupContainerItem(unpack(attachedItem))
+			if arg1 ~= 'LeftButton' then ClearCursor() end -- for the lock changed event
+	    end
+	    SendMailFrame_Update()
+	end
 end
 
 -- requires an item lock changed event for a proper update
-function self:SendMail_AttachItem(item)
-    if not self:SendMail_Mailable(item) then
-        return self:Print('Cannot attach item.', 1, 0.5, 0)
+function self:SendMail_SetAttachment(item, slot)
+    if item and not self:SendMail_Mailable(item) then
+        self:Print('Cannot attach item.', 1, 0.5, 0)
+        return
     end
-	for i=1,ATTACHMENTS_MAX do
-		if not getglobal('PostalAttachment'..i).item then
-			getglobal('PostalAttachment'..i).item = item
-            SendMailFrame_Update()
-            return
+    if not slot then
+		for i=1,ATTACHMENTS_MAX do
+			if not getglobal('PostalAttachment'..i).item then
+				slot = getglobal('PostalAttachment'..i)
+	            break
+			end
 		end
+	end
+	if slot then
+		slot.item = item
+	    SendMailFrame_Update()
+	    return true
 	end
 end
 

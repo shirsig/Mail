@@ -146,6 +146,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</OnDragStart>
 			<OnClick>
 				Postal:AttachmentButton_OnClick()
+				this:GetScript'OnEnter'()
 			</OnClick>
 			<OnEnter>
 				GameTooltip:SetOwner(this, 'ANCHOR_RIGHT')
