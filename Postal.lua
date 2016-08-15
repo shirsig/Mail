@@ -195,8 +195,14 @@ function self:Print(msg, r, g, b)
 	DEFAULT_CHAT_FRAME:AddMessage('Postal: '..msg, r, g, b)
 end
 
-function self:Present(value)
-	return value ~= nil and {[value]=true} or {}
+function self:present(...)
+	local called
+	return function()
+		if not called then
+			called = true
+			return unpack(arg)
+		end
+	end
 end
 
 function self:Abort()
