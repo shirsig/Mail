@@ -195,7 +195,7 @@ function self:Print(msg, r, g, b)
 	DEFAULT_CHAT_FRAME:AddMessage('Postal: '..msg, r, g, b)
 end
 
-function self:present(...)
+function self:Present(...)
 	local called
 	return function()
 		if not called then
