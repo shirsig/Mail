@@ -2,6 +2,90 @@
 C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<Script file="Postal.lua"/>
 
+	<Button name="AutoCompleteButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="120" y="14"/>
+		</Size>
+		<Scripts>
+			<OnClick function="AutoCompleteButton_OnClick"/>
+			<OnLoad>
+				this:GetFontString():SetPoint('LEFT', this, 'LEFT', 15, 0)
+			</OnLoad>
+		</Scripts>
+		<ButtonText name="$parentText"/>
+		<NormalFont style="GameFontNormal"/>
+		<HighlightFont style="GameFontHighlight"/>
+		<DisabledFont style="GameFontDisable"/>
+		<HighlightTexture inherits="UIPanelButtonHighlightTexture"/>
+	</Button>
+	<Frame name="AutoCompleteBox" parent="UIParent" hidden="true">
+		<Size>
+			<AbsDimension x="5" y="5"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+			<EdgeSize>
+				<AbsValue val="16"/>
+			</EdgeSize>
+			<TileSize>
+				<AbsValue val="16"/>
+			</TileSize>
+			<BackgroundInsets>
+				<AbsInset left="5" right="5" top="5" bottom="5"/>
+			</BackgroundInsets>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="AutoCompleteInstructions" inherits="GameFontDisableSmall" text="PRESS_TAB">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset>
+								<AbsDimension x="15" y="10"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="AutoCompleteButton1" inherits="AutoCompleteButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<!--This 10 is a magic number used in AutoComplete_Update when checking whether the AutoComplete box should be above or below the EditBox. Please update the number there if you change it here-->
+							<AbsDimension x="0" y="-10"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="AutoCompleteButton2" inherits="AutoCompleteButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton1" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</Button>
+			<Button name="AutoCompleteButton3" inherits="AutoCompleteButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton2" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</Button>
+			<Button name="AutoCompleteButton4" inherits="AutoCompleteButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton3" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</Button>
+			<Button name="AutoCompleteButton5" inherits="AutoCompleteButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton4" relativePoint="BOTTOMLEFT"/>
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad function="AutoComplete_OnLoad"/>
+		</Scripts>
+	</Frame>
+
 	<Button name="PostalAttachment" virtual="true">
 		<Size>
 			<AbsDimension x="37" y="37"/>
