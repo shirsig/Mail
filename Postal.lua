@@ -10,6 +10,8 @@ local ATTACHMENTS_MAX = 21
 local ATTACHMENTS_PER_ROW_SEND = 7
 local ATTACHMENTS_MAX_ROWS_SEND = 3
 
+function self:pack(...) return arg end
+
 self.hook, self.orig = {}, {}
 function self:Hook(...)
 	for i=1,arg.n do
@@ -466,8 +468,8 @@ end
 
 function self.hook.GetContainerItemInfo(...)
     local item = {arg[1], arg[2]}
-    local ret = {self.orig.GetContainerItemInfo(unpack(arg))}
-    ret[3] = ret[3] or self:SendMail_Attached(item) 
+    local ret = self:pack(self.orig.GetContainerItemInfo(unpack(arg)))
+    ret[3] = ret[3] or self:SendMail_Attached(item) and 1 or nil
     return unpack(ret)
 end
 
