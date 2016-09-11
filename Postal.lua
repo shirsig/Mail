@@ -377,7 +377,9 @@ function self.hook.SendMailFrame_Update()
         SendMailCODButton:Enable()
         SendMailCODButtonText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
     else
-        SendMailRadioButton_OnClick(1)
+		SendMailSendMoneyButton:SetChecked(1)
+		SendMailCODButton:SetChecked(nil)
+		SendMailMoneyText:SetText(AMOUNT_TO_SEND)
         SendMailCODButton:Disable()
         SendMailCODButtonText:SetTextColor(GRAY_FONT_COLOR.r, GRAY_FONT_COLOR.g, GRAY_FONT_COLOR.b)
     end
@@ -565,6 +567,7 @@ end
 -- requires an item lock changed event for a proper update
 function self:SendMail_SetAttachment(item, slot)
 	if item and not self:SendMail_PickupMailable(item) then
+		ClearCursor()
 		return
     elseif not slot then
 		for i=1,ATTACHMENTS_MAX do
