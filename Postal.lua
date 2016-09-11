@@ -54,7 +54,9 @@ do
 end
 
 function self:BAG_UPDATE()
-	SendMailFrame_Update()
+	if MailFrame:IsVisible() then
+		SendMailFrame_Update()
+	end
 end
 
 function self:MAIL_CLOSED()
