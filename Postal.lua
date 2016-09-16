@@ -169,6 +169,7 @@ function self:ADDON_LOADED()
     SendMailNameEditBox:SetScript('OnEnterPressed', function()
     	if AutoCompleteBox:IsVisible() then
     		AutoCompleteBox:Hide()
+    		this:HighlightText(0, 0)
 		else
 			PostalSubjectEditBox:SetFocus()
 		end
@@ -180,12 +181,16 @@ function self:ADDON_LOADED()
 			this:ClearFocus()
 		end
     end)
+    function SendMailNameEditBox.focusLoss()
+    	AutoCompleteBox:Hide()
+	end
 
 	for _, editBox in { SendMailNameEditBox, SendMailSubjectEditBox } do
 		editBox:SetScript('OnEditFocusGained', function()
 			this:HighlightText()
 	    end)
 	    editBox:SetScript('OnEditFocusLost', function()
+	    	(this.focusLoss or function() end)()
 	    	this:HighlightText(0, 0)
 	    end)
 	    do
@@ -734,6 +739,7 @@ do
 		index = i
 		complete()
 		AutoCompleteBox:Hide()
+		SendMailNameEditBox:HighlightText(0, 0)
 	end
 
 	function self:GetMatches()
@@ -741,6 +747,7 @@ do
 		inputLength = strlen(input)
 
 		table.setn(matches, 0)
+		index = nil
 
 		local name
 		for i = 1, GetNumFriends() do
@@ -754,10 +761,6 @@ do
 			if strfind(strupper(name), strupper(input), nil, true) == 1 then
 				tinsert(matches, name)
 			end
-		end
-
-		if matches[1] then
-			index = 1
 		end
 
 		table.setn(matches, min(getn(matches), AUTOCOMPLETE_MAX_BUTTONS))
@@ -775,10 +778,10 @@ do
 			AutoCompleteBox:SetHeight(getn(matches) * AutoCompleteButton1:GetHeight() + 35)
 			AutoCompleteBox:SetWidth(120)
 			AutoCompleteBox:Show()
+			index = 1
+			complete()
 		else
 			AutoCompleteBox:Hide()
 		end
-		index = 1
-		complete(index)
 	end
 end
