@@ -7,7 +7,12 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			<AbsDimension x="120" y="14"/>
 		</Size>
 		<Scripts>
-			<OnClick></OnClick>
+			<OnClick>
+				Postal:SelectMatch(this:GetID())
+			</OnClick>
+			<OnTabPressed>
+				Postal:NextMatch()
+			</OnTabPressed>
 		</Scripts>
 		<NormalFont inherits="GameFontNormal"/>
 		<HighlightFont inherits="GameFontHighlight"/>
@@ -18,6 +23,9 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<Size>
 			<AbsDimension x="5" y="5"/>
 		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT"><Offset><AbsDimension x="0" y="3"/></Offset></Anchor>
+		</Anchors>
 		<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
 			<EdgeSize>
 				<AbsValue val="16"/>
@@ -43,7 +51,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</Layer>
 		</Layers>
 		<Frames>
-			<Button name="AutoCompleteButton1" inherits="AutoCompleteButtonTemplate">
+			<Button name="AutoCompleteButton1" inherits="AutoCompleteButtonTemplate" id="1">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
@@ -53,22 +61,22 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 					</Anchor>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton2" inherits="AutoCompleteButtonTemplate">
+			<Button name="AutoCompleteButton2" inherits="AutoCompleteButtonTemplate" id="2">
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton1" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton3" inherits="AutoCompleteButtonTemplate">
+			<Button name="AutoCompleteButton3" inherits="AutoCompleteButtonTemplate" id="3">
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton2" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton4" inherits="AutoCompleteButtonTemplate">
+			<Button name="AutoCompleteButton4" inherits="AutoCompleteButtonTemplate" id="4">
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton3" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton5" inherits="AutoCompleteButtonTemplate">
+			<Button name="AutoCompleteButton5" inherits="AutoCompleteButtonTemplate" id="5">
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton4" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
@@ -76,7 +84,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Frames>
 		<Scripts>
 			<OnLoad>
-				local AUTOCOMPLETE_MAX_BUTTONS = 5
+				AUTOCOMPLETE_MAX_BUTTONS = 5
 				this:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
 				this:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
 				this.maxHeight = AUTOCOMPLETE_MAX_BUTTONS * AutoCompleteButton1:GetHeight()

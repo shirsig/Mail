@@ -129,7 +129,7 @@ function self:ADDON_LOADED()
 
     -- hack to avoid automatic subject setting and button disabling from weird blizzard code
 	PostalMailButton = SendMailMailButton
-	SendMailMailButton = setmetatable({}, {__index = function() return function() end end})
+	SendMailMailButton = setmetatable({}, { __index = function() return function() end end })
     SendMailMailButton_OnClick = self.PostalMailButton_OnClick
     PostalSubjectEditBox = SendMailSubjectEditBox
     SendMailSubjectEditBox = setmetatable({}, {
@@ -153,18 +153,25 @@ function self:ADDON_LOADED()
     end)
 	SendMailNameEditBox:SetScript('OnChar', function()
 		Postal_To = nil
-		SendMailFrame_SendeeAutocomplete()
-	    AutoCompleteBox:SetPoint('TOPLEFT', SendMailNameEditBox, 'BOTTOMLEFT', 0, 3)
-    	for i = 1, 5 do
-    		local button = getglobal('AutoCompleteButton' .. i)
-    		button:SetText('kek')
-    		button:GetFontString():SetPoint('LEFT', button, 'LEFT', 15, 0)
-    		button:Enable()
-    		button:Show()
+		self:GetMatches()
+    end)
+    SendMailNameEditBox:SetScript('OnTabPressed', function()
+    	if AutoCompleteBox:IsVisible() then
+    		if IsShiftKeyDown() then
+    			self:PreviousMatch()
+			else
+				self:NextMatch()
+			end
+		else
+			PostalSubjectEditBox:SetFocus()
 		end
-		AutoCompleteBox:SetHeight(5 * AutoCompleteButton1:GetHeight() + 35)
-		AutoCompleteBox:SetWidth(120)
-		AutoCompleteBox:Show()
+    end)
+    SendMailNameEditBox:SetScript('OnEscapePressed', function()
+    	if AutoCompleteBox:IsVisible() then
+    		AutoCompleteBox:Hide()
+		else
+			this:ClearFocus()
+		end
     end)
 
 	for _, editBox in { SendMailNameEditBox, SendMailSubjectEditBox } do
@@ -684,24 +691,79 @@ function self:SendMail_Send()
     end
 end
 
-function self:FuzzyMatcher(input)
-	local uppercaseInput = strupper(input)
-	local pattern = '(.*)'
-	for i = 1, strlen(uppercaseInput) do
-		if strfind(strsub(uppercaseInput, i, i), '%w') or strfind(strsub(uppercaseInput, i, i), '%s') then
-			pattern = pattern .. strsub(uppercaseInput, i, i) .. '(.-)'
- 		end
+do
+	local inputLength
+	local matches = {}
+	local index
+
+	local function complete()
+		SendMailNameEditBox:SetText(matches[index])
+		SendMailNameEditBox:HighlightText(inputLength, -1)
 	end
-	return function(candidate)
-		local match = { strfind(strupper(candidate), pattern) }
-		if match[1] then
-			local rating = 0
-			for i = 4, getn(match) - 1 do
-				if strlen(match[i]) == 0 then
-					rating = rating + 1
-				end
- 			end
-			return rating
- 		end
+
+	function self:PreviousMatch()
+		if index then
+			index = abs(min(index - 1, -getn(matches))
+			complete()
+		end
+	end
+
+	function self:NextMatch()
+		if index then
+			index = mod(index, getn(matches)) + 1
+			complete()
+		end
+	end
+
+	function self:SelectMatch(i)
+		index = i
+		complete()
+		AutoCompleteBox:Hide()
+	end
+
+	function self:GetMatches()
+		local input = SendMailNameEditBox:GetText()
+		inputLength = strlen(input)
+
+		table.setn(matches, 0)
+
+		local name
+		for i = 1, GetNumFriends() do
+			name = GetFriendInfo(i)
+			if strfind(strupper(name), strupper(input), nil, true) == 1 then
+				tinsert(matches, name)
+			end
+		end
+		for i = 1, GetNumGuildMembers(true) do
+			name = GetGuildRosterInfo(i)
+			if strfind(strupper(name), strupper(input), nil, true) == 1 then
+				tinsert(matches, name)
+			end
+		end
+
+		if matches[1] then
+			index = 1
+		end
+
+		table.setn(matches, min(getn(matches), AUTOCOMPLETE_MAX_BUTTONS))
+		if getn(matches) > 0 then
+			for i = 1, AUTOCOMPLETE_MAX_BUTTONS do
+				local button = getglobal('AutoCompleteButton' .. i)
+				if i <= getn(matches) then
+					button:SetText(matches[i])
+		    		button:GetFontString():SetPoint('LEFT', button, 'LEFT', 15, 0)
+		    		button:Show()
+	    		else
+	    			button:Hide()
+    			end
+			end
+			AutoCompleteBox:SetHeight(getn(matches) * AutoCompleteButton1:GetHeight() + 35)
+			AutoCompleteBox:SetWidth(120)
+			AutoCompleteBox:Show()
+		else
+			AutoCompleteBox:Hide()
+		end
+		index = 1
+		complete(index)
 	end
 end
