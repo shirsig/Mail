@@ -166,6 +166,13 @@ function self:ADDON_LOADED()
 			PostalSubjectEditBox:SetFocus()
 		end
     end)
+    SendMailNameEditBox:SetScript('OnEnterPressed', function()
+    	if AutoCompleteBox:IsVisible() then
+    		AutoCompleteBox:Hide()
+		else
+			PostalSubjectEditBox:SetFocus()
+		end
+    end)
     SendMailNameEditBox:SetScript('OnEscapePressed', function()
     	if AutoCompleteBox:IsVisible() then
     		AutoCompleteBox:Hide()
