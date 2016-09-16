@@ -7,24 +7,17 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			<AbsDimension x="120" y="14"/>
 		</Size>
 		<Scripts>
-			<OnClick function="AutoCompleteButton_OnClick"/>
-			<OnLoad>
-				this:GetFontString():SetPoint('LEFT', this, 'LEFT', 15, 0)
-			</OnLoad>
+			<OnClick></OnClick>
 		</Scripts>
-		<ButtonText name="$parentText"/>
-		<NormalFont style="GameFontNormal"/>
-		<HighlightFont style="GameFontHighlight"/>
-		<DisabledFont style="GameFontDisable"/>
+		<NormalFont inherits="GameFontNormal"/>
+		<HighlightFont inherits="GameFontHighlight"/>
+		<DisabledFont inherits="GameFontDisable"/>
 		<HighlightTexture inherits="UIPanelButtonHighlightTexture"/>
 	</Button>
-	<Frame name="AutoCompleteBox" parent="UIParent" hidden="true">
+	<Frame name="AutoCompleteBox" parent="SendMailNameEditBox" frameStrata="DIALOG" hidden="true">
 		<Size>
 			<AbsDimension x="5" y="5"/>
 		</Size>
-		<Anchors>
-			<Anchor point="CENTER"/>
-		</Anchors>
 		<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
 			<EdgeSize>
 				<AbsValue val="16"/>
@@ -38,7 +31,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Backdrop>
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString name="AutoCompleteInstructions" inherits="GameFontDisableSmall" text="PRESS_TAB">
+				<FontString name="AutoCompleteInstructions" inherits="GameFontDisableSmall">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT">
 							<Offset>
@@ -82,7 +75,13 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</Button>
 		</Frames>
 		<Scripts>
-			<OnLoad function="AutoComplete_OnLoad"/>
+			<OnLoad>
+				local AUTOCOMPLETE_MAX_BUTTONS = 5
+				this:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
+				this:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
+				this.maxHeight = AUTOCOMPLETE_MAX_BUTTONS * AutoCompleteButton1:GetHeight()
+				AutoCompleteInstructions:SetText("|cffbbbbbbPress Tab|r")
+			</OnLoad>
 		</Scripts>
 	</Frame>
 

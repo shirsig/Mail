@@ -2,7 +2,7 @@ local self = CreateFrame('Frame', nil, MailFrame)
 Postal = self
 self:SetScript('OnUpdate', function() this:UPDATE() end)
 self:SetScript('OnEvent', function() this[event](this) end)
-for _, event in {'ADDON_LOADED', 'VARIABLES_LOADED', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS'} do
+for _, event in { 'ADDON_LOADED', 'VARIABLES_LOADED', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS' } do
 	self:RegisterEvent(event)
 end
 
@@ -14,7 +14,7 @@ function self:pack(...) return arg end
 
 self.hook, self.orig = {}, {}
 function self:Hook(...)
-	for i=1,arg.n do
+	for i = 1, arg.n do
 		self.orig[arg[i]] = getglobal(arg[i])
 		setglobal(arg[i], self.hook[arg[i]])
 	end
@@ -30,10 +30,10 @@ do
         end
     end
     function self:When(predicate, callback)
-        state = {predicate = predicate, callback = callback}
+        state = { predicate = predicate, callback = callback }
     end
     function self:Wait(callback)
-        state = {predicate = function() return true end, callback = callback}
+        state = { predicate = function() return true end, callback = callback }
     end
     function self:Kill()
         state = nil
@@ -66,7 +66,7 @@ function self:MAIL_CLOSED()
 
 	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
 	-- Does not scan past the first 50 items since only the first 50 are viewable.
-	for i=1,GetInboxNumItems() do
+	for i = 1, GetInboxNumItems() do
 		if not ({GetInboxHeaderInfo(i)})[9] then return end
 	end
 	MiniMapMailFrame:Hide()
@@ -104,18 +104,18 @@ function self:ADDON_LOADED()
     PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
     PostalHorizontalBarLeft:SetWidth(256)
     PostalHorizontalBarLeft:SetHeight(16)
-    PostalHorizontalBarLeft:SetTexCoord(0, 1, 0, 0.25)
+    PostalHorizontalBarLeft:SetTexCoord(0, 1, 0, .25)
     SendMailFrame:CreateTexture('PostalHorizontalBarRight', 'BACKGROUND')
     PostalHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
     PostalHorizontalBarRight:SetWidth(75)
     PostalHorizontalBarRight:SetHeight(16)
-    PostalHorizontalBarRight:SetTexCoord(0, 0.29296875, 0.25, 0.5)
+    PostalHorizontalBarRight:SetTexCoord(0, .29296875, .25, .5)
     PostalHorizontalBarRight:SetPoint('LEFT', PostalHorizontalBarLeft, 'RIGHT')
 
     do
-        local background = ({SendMailPackageButton:GetRegions()})[1]
+        local background = ({ SendMailPackageButton:GetRegions() })[1]
         background:Hide()
-        local count = ({SendMailPackageButton:GetRegions()})[3]
+        local count = ({ SendMailPackageButton:GetRegions() })[3]
         count:Hide()
         SendMailPackageButton:Disable()
         SendMailPackageButton:SetScript('OnReceiveDrag', nil)
@@ -154,9 +154,20 @@ function self:ADDON_LOADED()
 	SendMailNameEditBox:SetScript('OnChar', function()
 		Postal_To = nil
 		SendMailFrame_SendeeAutocomplete()
+	    AutoCompleteBox:SetPoint('TOPLEFT', SendMailNameEditBox, 'BOTTOMLEFT', 0, 3)
+    	for i = 1, 5 do
+    		local button = getglobal('AutoCompleteButton' .. i)
+    		button:SetText('kek')
+    		button:GetFontString():SetPoint('LEFT', button, 'LEFT', 15, 0)
+    		button:Enable()
+    		button:Show()
+		end
+		AutoCompleteBox:SetHeight(5 * AutoCompleteButton1:GetHeight() + 35)
+		AutoCompleteBox:SetWidth(120)
+		AutoCompleteBox:Show()
     end)
 
-	for _, editBox in {SendMailNameEditBox, SendMailSubjectEditBox} do
+	for _, editBox in { SendMailNameEditBox, SendMailSubjectEditBox } do
 		editBox:SetScript('OnEditFocusGained', function()
 			this:HighlightText()
 	    end)
@@ -173,7 +184,7 @@ function self:ADDON_LOADED()
 	            		this:SetScript('OnUpdate', nil)
 	            	end)
 	            end
-	            lastClick = {t=GetTime(), x=x, y=y}
+	            lastClick = { t=GetTime(), x=x, y=y }
 	        end)
     	end
 	end
@@ -196,7 +207,7 @@ function self.hook.OpenMail_Reply(...)
 end
 
 function self:Print(msg, r, g, b)
-	DEFAULT_CHAT_FRAME:AddMessage('Postal: '..msg, r, g, b)
+	DEFAULT_CHAT_FRAME:AddMessage('Postal: ' .. msg, r, g, b)
 end
 
 function self:Present(...)
@@ -220,10 +231,10 @@ function self.hook.InboxFrame_Update()
 	for i=1,7 do
 		local index = (i + (InboxFrame.pageNum - 1) * 7)
 		if index > GetInboxNumItems() then
-			getglobal('PostalBoxItem'..i..'CB'):Hide()
+			getglobal('PostalBoxItem' .. i .. 'CB'):Hide()
 		else
-			getglobal('PostalBoxItem'..i..'CB'):Show()
-			getglobal('PostalBoxItem'..i..'CB'):SetChecked(self.Inbox_selectedItems[index])
+			getglobal('PostalBoxItem' .. i .. 'CB'):Show()
+			getglobal('PostalBoxItem' .. i .. 'CB'):SetChecked(self.Inbox_selectedItems[index])
 		end
 	end
 	self:Inbox_Lock()
@@ -318,12 +329,12 @@ function self:Inbox_OpenItem(i, inboxCount, selected)
 			return self:Inbox_OpenMail(selected)
 		elseif item then
 			TakeInboxItem(i)
-			self:When(function() return not ({GetInboxHeaderInfo(i)})[8] or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
+			self:When(function() return not ({ GetInboxHeaderInfo(i) })[8] or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
 				return self:Inbox_OpenItem(i, inboxCount, selected)
 			end)
 		elseif money > 0 then
 			TakeInboxMoney(i)
-			self:When(function() return ({GetInboxHeaderInfo(i)})[5] == 0 or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
+			self:When(function() return ({ GetInboxHeaderInfo(i) })[5] == 0 or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
 				return self:Inbox_OpenItem(i, inboxCount, selected)
 			end)
 		else
@@ -427,19 +438,19 @@ function self.hook.SendMailFrame_Update()
 	SendMailScrollFrame:SetHeight(scrollHeight)
 	SendMailScrollChildFrame:SetHeight(scrollHeight)
 
-	local SendMailScrollFrameTop = ({SendMailScrollFrame:GetRegions()})[3]
+	local SendMailScrollFrameTop = ({ SendMailScrollFrame:GetRegions() })[3]
 	SendMailScrollFrameTop:SetHeight(scrollHeight)
-	SendMailScrollFrameTop:SetTexCoord(0, 0.484375, 0, scrollHeight / 256)
+	SendMailScrollFrameTop:SetTexCoord(0, .484375, 0, scrollHeight / 256)
 
 	StationeryBackgroundLeft:SetHeight(scrollHeight)
-	StationeryBackgroundLeft:SetTexCoord(0, 1.0, 0, scrollHeight / 256)
+	StationeryBackgroundLeft:SetTexCoord(0, 1, 0, scrollHeight / 256)
 
 
 	StationeryBackgroundRight:SetHeight(scrollHeight)
-	StationeryBackgroundRight:SetTexCoord(0, 1.0, 0, scrollHeight / 256)
+	StationeryBackgroundRight:SetTexCoord(0, 1, 0, scrollHeight / 256)
 
     -- Set Items
-	for i=1,ATTACHMENTS_MAX do
+	for i = 1, ATTACHMENTS_MAX do
 		if cursory >= 0 then
 			getglobal('PostalAttachment'..i):Enable()
 			getglobal('PostalAttachment'..i):Show()
@@ -471,34 +482,34 @@ function self.hook.ClickSendMailItemButton()
 end
 
 function self.hook.GetContainerItemInfo(...)
-    local item = {arg[1], arg[2]}
+    local item = { arg[1], arg[2] }
     local ret = self:pack(self.orig.GetContainerItemInfo(unpack(arg)))
     ret[3] = ret[3] or self:SendMail_Attached(item) and 1 or nil
     return unpack(ret)
 end
 
 function self.hook.PickupContainerItem(...)
-	local item = {arg[1], arg[2]}
+	local item = { arg[1], arg[2] }
 	if self:SendMail_Attached(item) then return end
 	if GetContainerItemInfo(unpack(item)) then self:SetCursorItem(item) end
 	return self.orig.PickupContainerItem(unpack(arg))
 end
 
 function self.hook.SplitContainerItem(...)
-    local item = {arg[1], arg[2]}
+    local item = { arg[1], arg[2] }
     if self:SendMail_Attached(item) then return end
     return self.orig.SplitContainerItem(unpack(arg))
 end
 
 function self.hook.UseContainerItem(...)
-    local item = {arg[1], arg[2]}
+    local item = { arg[1], arg[2] }
     if self:SendMail_Attached(item) then return end
     if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
         return self.orig.UseContainerItem(unpack(arg))
     elseif SendMailFrame:IsVisible() then
         self:SendMail_SetAttachment(item)
     elseif TradeFrame:IsVisible() then
-        for i=1,6 do
+        for i = 1, 6 do
             if not GetTradePlayerItemLink(i) then
                 self.orig.PickupContainerItem(unpack(arg))
                 ClickTradeButton(i)
@@ -571,8 +582,8 @@ function self:SendMail_SetAttachment(item, slot)
 		return
     elseif not slot then
 		for i=1,ATTACHMENTS_MAX do
-			if not getglobal('PostalAttachment'..i).item then
-				slot = getglobal('PostalAttachment'..i)
+			if not getglobal('PostalAttachment' .. i).item then
+				slot = getglobal('PostalAttachment' .. i)
 	            break
 			end
 		end
@@ -599,8 +610,8 @@ end
 
 function self:SendMail_NumAttachments()
 	local num = 0
-	for i=1,ATTACHMENTS_MAX do
-		if getglobal('PostalAttachment'..i).item then
+	for i = 1, ATTACHMENTS_MAX do
+		if getglobal('PostalAttachment' .. i).item then
 			num = num + 1
 		end
 	end
@@ -609,8 +620,8 @@ end
 
 function self:SendMail_Attachments()
     local arr = {}
-    for i=1,ATTACHMENTS_MAX do
-        local btn = getglobal('PostalAttachment'..i)
+    for i = 1, ATTACHMENTS_MAX do
+        local btn = getglobal('PostalAttachment' .. i)
         if btn.item then
             tinsert(arr, btn.item)
         end
@@ -620,13 +631,13 @@ end
 
 function self:SendMail_Clear()
 	for i=1,ATTACHMENTS_MAX do
-        getglobal('PostalAttachment'..i).item = nil
+        getglobal('PostalAttachment' .. i).item = nil
 	end
 	PostalMailButton:Disable()
-	SendMailNameEditBox:SetText('')
+	SendMailNameEditBox:SetText''
 	SendMailNameEditBox:SetFocus()
-	PostalSubjectEditBox:SetText('')
-	SendMailBodyEditBox:SetText('')
+	PostalSubjectEditBox:SetText''
+	SendMailBodyEditBox:SetText''
 	MoneyInputFrame_ResetMoney(SendMailMoney)
 	SendMailRadioButton_OnClick(1)
 
@@ -671,4 +682,26 @@ function self:SendMail_Send()
 	    	self:SendMail_Send()
 	    end)
     end
+end
+
+function self:FuzzyMatcher(input)
+	local uppercaseInput = strupper(input)
+	local pattern = '(.*)'
+	for i = 1, strlen(uppercaseInput) do
+		if strfind(strsub(uppercaseInput, i, i), '%w') or strfind(strsub(uppercaseInput, i, i), '%s') then
+			pattern = pattern .. strsub(uppercaseInput, i, i) .. '(.-)'
+ 		end
+	end
+	return function(candidate)
+		local match = { strfind(strupper(candidate), pattern) }
+		if match[1] then
+			local rating = 0
+			for i = 4, getn(match) - 1 do
+				if strlen(match[i]) == 0 then
+					rating = rating + 1
+				end
+ 			end
+			return rating
+ 		end
+	end
 end
