@@ -703,7 +703,7 @@ do
 
 	function self:PreviousMatch()
 		if index then
-			index = abs(min(index - 1, -getn(matches)))
+			index = index > 1 and index - 1 or getn(matches)
 			complete()
 		end
 	end
