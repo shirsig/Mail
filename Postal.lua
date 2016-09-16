@@ -122,9 +122,21 @@ function self:ADDON_LOADED()
         SendMailPackageButton:SetScript('OnDragStart', nil)
     end
 
-    SendMailMoneyText:SetPoint('TOPLEFT', 0, -2)
+    SendMailMoneyText:SetPoint('TOPLEFT', 0, 0)
     SendMailMoney:ClearAllPoints()
-    SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -3)
+    SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -5)
+    SendMailMoneyGoldRight:SetPoint('RIGHT', 20, 0)
+   	;({SendMailMoneyGold:GetRegions()})[9]:SetDrawLayer('BORDER')
+   	SendMailMoneyGold:SetMaxLetters(7)
+   	SendMailMoneyGold:SetWidth(50)
+    SendMailMoneySilverRight:SetPoint('RIGHT', 10, 0)
+    ;({SendMailMoneySilver:GetRegions()})[9]:SetDrawLayer('BORDER')
+    SendMailMoneySilver:SetWidth(28)
+    SendMailMoneySilver:SetPoint('LEFT', SendMailMoneyGold, 'RIGHT', 30, 0)
+    SendMailMoneyCopperRight:SetPoint('RIGHT', 10, 0)
+    ;({SendMailMoneyCopper:GetRegions()})[9]:SetDrawLayer('BORDER')
+    SendMailMoneyCopper:SetWidth(28)
+    SendMailMoneyCopper:SetPoint('LEFT', SendMailMoneySilver, 'RIGHT', 20, 0)  
     SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
 
     -- hack to avoid automatic subject setting and button disabling from weird blizzard code
