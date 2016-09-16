@@ -706,6 +706,14 @@ do
 	local function complete()
 		SendMailNameEditBox:SetText(matches[index])
 		SendMailNameEditBox:HighlightText(inputLength, -1)
+		for i = 1, AUTOCOMPLETE_MAX_BUTTONS do
+			local button = getglobal('AutoCompleteButton' .. i)
+			if i == index then
+				button:LockHighlight()
+    		else
+    			button:UnlockHighlight()
+			end
+		end
 	end
 
 	function self:PreviousMatch()
