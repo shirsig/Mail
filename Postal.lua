@@ -554,6 +554,7 @@ end
 
 function self.PostalMailButton_OnClick()
 	self:Abort()
+	AutoCompleteBox:Hide()
 
 	Postal_To = SendMailNameEditBox:GetText()
 	SendMailNameEditBox:HighlightText()
