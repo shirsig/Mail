@@ -777,7 +777,7 @@ do
 		end
 
 		table.setn(matches, min(getn(matches), AUTOCOMPLETE_MAX_BUTTONS))
-		if getn(matches) > 0 then
+		if getn(matches) > 0 and (getn(matches) > 1 or input ~= matches[1]) then
 			for i = 1, AUTOCOMPLETE_MAX_BUTTONS do
 				local button = getglobal('AutoCompleteButton' .. i)
 				if i <= getn(matches) then
