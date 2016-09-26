@@ -6,6 +6,8 @@ for _, event in { 'ADDON_LOADED', 'VARIABLES_LOADED', 'UI_ERROR_MESSAGE', 'CURSO
 	self:RegisterEvent(event)
 end
 
+Postal_Characters = {}
+
 local ATTACHMENTS_MAX = 21
 local ATTACHMENTS_PER_ROW_SEND = 7
 local ATTACHMENTS_MAX_ROWS_SEND = 3
@@ -67,7 +69,7 @@ function self:MAIL_CLOSED()
 	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
 	-- Does not scan past the first 50 items since only the first 50 are viewable.
 	for i = 1, GetInboxNumItems() do
-		if not ({GetInboxHeaderInfo(i)})[9] then return end
+		if not ({ GetInboxHeaderInfo(i) })[9] then return end
 	end
 	MiniMapMailFrame:Hide()
 end
@@ -88,6 +90,17 @@ function self:UI_ERROR_MESSAGE()
 	end
 end
 
+function self:UpdateCharacters()
+	local realm = GetCVar'realmName'
+	Postal_Characters[realm] = Postal_Characters[realm] or {}
+	for char, lastSeen in Postal_Characters[realm] do
+		if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
+			Postal_Characters[realm][char] = nil
+		end
+	end
+	Postal_Characters[realm][UnitName'player'] = GetTime()
+end
+
 function self:ADDON_LOADED()
 	if arg1 ~= 'Postal' then return end
 
@@ -95,7 +108,7 @@ function self:ADDON_LOADED()
 	UIPanelWindows['FriendsFrame'].pushable = 2
 
 	MailItem1:SetPoint('TOPLEFT', 'InboxFrame', 'TOPLEFT', 48, -80)
-	for i=1,7 do
+	for i = 1, 7 do
 		getglobal('MailItem' .. i .. 'ExpireTime'):SetPoint('TOPRIGHT', 'MailItem' .. i, 'TOPRIGHT', 10, -4)
 		getglobal('MailItem' .. i):SetWidth(280)
 	end
@@ -126,15 +139,15 @@ function self:ADDON_LOADED()
     SendMailMoney:ClearAllPoints()
     SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -5)
     SendMailMoneyGoldRight:SetPoint('RIGHT', 20, 0)
-   	;({SendMailMoneyGold:GetRegions()})[9]:SetDrawLayer('BORDER')
+   	do ({ SendMailMoneyGold:GetRegions() })[9]:SetDrawLayer('BORDER') end
    	SendMailMoneyGold:SetMaxLetters(7)
    	SendMailMoneyGold:SetWidth(50)
     SendMailMoneySilverRight:SetPoint('RIGHT', 10, 0)
-    ;({SendMailMoneySilver:GetRegions()})[9]:SetDrawLayer('BORDER')
+    do ({ SendMailMoneySilver:GetRegions() })[9]:SetDrawLayer('BORDER') end
     SendMailMoneySilver:SetWidth(28)
     SendMailMoneySilver:SetPoint('LEFT', SendMailMoneyGold, 'RIGHT', 30, 0)
     SendMailMoneyCopperRight:SetPoint('RIGHT', 10, 0)
-    ;({SendMailMoneyCopper:GetRegions()})[9]:SetDrawLayer('BORDER')
+    do ({ SendMailMoneyCopper:GetRegions() })[9]:SetDrawLayer('BORDER') end
     SendMailMoneyCopper:SetWidth(28)
     SendMailMoneyCopper:SetPoint('LEFT', SendMailMoneySilver, 'RIGHT', 20, 0)  
     SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
@@ -165,7 +178,7 @@ function self:ADDON_LOADED()
     end)
 	SendMailNameEditBox:SetScript('OnChar', function()
 		Postal_To = nil
-		self:GetMatches()
+		self:GetSuggestions()
     end)
     SendMailNameEditBox:SetScript('OnTabPressed', function()
     	if AutoCompleteBox:IsVisible() then
@@ -220,6 +233,7 @@ function self:ADDON_LOADED()
     	end
 	end
 
+	self:UpdateCharacters()
     self.Inbox_selectedItems = {}
     self.SendMail_ready = true
 end
@@ -259,7 +273,7 @@ end
 
 function self.hook.InboxFrame_Update()
 	self.orig.InboxFrame_Update()
-	for i=1,7 do
+	for i = 1, 7 do
 		local index = (i + (InboxFrame.pageNum - 1) * 7)
 		if index > GetInboxNumItems() then
 			getglobal('PostalBoxItem' .. i .. 'CB'):Hide()
@@ -353,7 +367,7 @@ function self:Inbox_OpenItem(i, inboxCount, selected)
 			self.Inbox_skip = false
 			tremove(selected, 1)
 			if newInboxCount < inboxCount then
-				for j, _ in selected do
+				for j in selected do
 					selected[j] = selected[j] - 1
 				end
 			end
@@ -755,25 +769,28 @@ do
 		SendMailNameEditBox:HighlightText(0, 0)
 	end
 
-	function self:GetMatches()
+	function self:GetSuggestions()
 		local input = SendMailNameEditBox:GetText()
 		inputLength = strlen(input)
 
 		table.setn(matches, 0)
 		index = nil
 
-		local name
-		for i = 1, GetNumFriends() do
-			name = GetFriendInfo(i)
-			if strfind(strupper(name), strupper(input), nil, true) == 1 then
+		local ignore = { [UnitName'player']=true }
+		local function process(name)
+			if not ignore[name] and strfind(strupper(name), strupper(input), nil, true) == 1 then
 				tinsert(matches, name)
 			end
+			ignore[name] = true
+		end
+		for character in Postal_Characters[GetCVar'realmName'] do
+			process(character)
+		end
+		for i = 1, GetNumFriends() do
+			process(GetFriendInfo(i))
 		end
 		for i = 1, GetNumGuildMembers(true) do
-			name = GetGuildRosterInfo(i)
-			if strfind(strupper(name), strupper(input), nil, true) == 1 then
-				tinsert(matches, name)
-			end
+			process(GetGuildRosterInfo(i))
 		end
 
 		table.setn(matches, min(getn(matches), AUTOCOMPLETE_MAX_BUTTONS))
