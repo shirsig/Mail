@@ -320,7 +320,7 @@ function self:Inbox_OpenSelected(all)
 
 	local selected = {}
 	if all then
-		for i=1,GetInboxNumItems() do
+		for i = 1, GetInboxNumItems() do
 			tinsert(selected, i)
 		end
 	else
@@ -378,7 +378,7 @@ function self:Inbox_OpenItem(i, inboxCount, selected)
 end
 
 function self:Inbox_Lock()
-	for i=1,7 do
+	for i = 1, 7 do
 		getglobal('MailItem'..i..'ButtonIcon'):SetDesaturated(self.Inbox_opening)
 		if self.Inbox_opening then
 			getglobal('MailItem'..i..'Button'):SetChecked(nil)
@@ -393,7 +393,7 @@ function self.hook.SendMailFrame_Update()
     -- local last = 0 blizzlike
     local last = self:SendMail_NumAttachments()
 
-	for i=1,ATTACHMENTS_MAX do
+	for i = 1, ATTACHMENTS_MAX do
 		local btn = getglobal('PostalAttachment' .. i)
 
 		local texture, count
@@ -579,7 +579,7 @@ function self.PostalMailButton_OnClick()
 end
 
 function self:SendMail_Attached(item)
-    for i=1,ATTACHMENTS_MAX do
+    for i = 1, ATTACHMENTS_MAX do
         local btn = getglobal('PostalAttachment' .. i)
         if btn.item and btn.item[1] == item[1] and btn.item[2] == item[2] then
             return true
@@ -589,7 +589,7 @@ function self:SendMail_Attached(item)
         return
     end
     for _, attachment in self.SendMail_state.attachments do
-        if attachment.item and attachment.item[1] == item[1] and attachment.item[2] == item[2] then
+        if attachment[1] == item[1] and attachment[2] == item[2] then
             return true
         end
     end
@@ -613,7 +613,7 @@ function self:SendMail_SetAttachment(item, slot)
 		ClearCursor()
 		return
     elseif not slot then
-		for i=1,ATTACHMENTS_MAX do
+		for i = 1, ATTACHMENTS_MAX do
 			if not getglobal('PostalAttachment' .. i).item then
 				slot = getglobal('PostalAttachment' .. i)
 	            break
@@ -662,7 +662,7 @@ function self:SendMail_Attachments()
 end
 
 function self:SendMail_Clear()
-	for i=1,ATTACHMENTS_MAX do
+	for i = 1, ATTACHMENTS_MAX do
         getglobal('PostalAttachment' .. i).item = nil
 	end
 	PostalMailButton:Disable()
