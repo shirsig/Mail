@@ -2,7 +2,7 @@ local self = CreateFrame('Frame', nil, MailFrame)
 Postal = self
 self:SetScript('OnUpdate', function() this:UPDATE() end)
 self:SetScript('OnEvent', function() this[event](this) end)
-for _, event in { 'ADDON_LOADED', 'VARIABLES_LOADED', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS' } do
+for _, event in { 'ADDON_LOADED', 'VARIABLES_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS' } do
 	self:RegisterEvent(event)
 end
 
@@ -90,15 +90,15 @@ function self:UI_ERROR_MESSAGE()
 	end
 end
 
-function self:UpdateCharacters()
-	local realm = GetCVar'realmName'
-	Postal_Characters[realm] = Postal_Characters[realm] or {}
-	for char, lastSeen in Postal_Characters[realm] do
+function self:PLAYER_LOGIN()
+	local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
+	Postal_Characters[key] = Postal_Characters[key] or {}
+	for char, lastSeen in Postal_Characters[key] do
 		if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-			Postal_Characters[realm][char] = nil
+			Postal_Characters[key][char] = nil
 		end
 	end
-	Postal_Characters[realm][UnitName'player'] = GetTime()
+	Postal_Characters[key][UnitName'player'] = GetTime()
 end
 
 function self:ADDON_LOADED()
@@ -233,7 +233,6 @@ function self:ADDON_LOADED()
     	end
 	end
 
-	self:UpdateCharacters()
     self.Inbox_selectedItems = {}
     self.SendMail_ready = true
 end
