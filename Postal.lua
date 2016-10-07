@@ -782,7 +782,7 @@ do
 			end
 			ignore[name] = true
 		end
-		for character in Postal_Characters[GetCVar'realmName'] do
+		for character in Postal_Characters[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
 			process(character)
 		end
 		for i = 1, GetNumFriends() do
