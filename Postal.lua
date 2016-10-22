@@ -592,6 +592,7 @@ function self.PostalMailButton_OnClick()
 end
 
 function self:SendMail_Attached(item)
+	if not MailFrame:IsVisible() then return false end
     for i = 1, ATTACHMENTS_MAX do
         local btn = getglobal('PostalAttachment' .. i)
         if btn.item and btn.item[1] == item[1] and btn.item[2] == item[2] then
