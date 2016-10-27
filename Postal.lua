@@ -32,10 +32,10 @@ do
         end
     end
     function self:When(predicate, callback)
-        state = { predicate = predicate, callback = callback }
+        state = {predicate=predicate, callback=callback}
     end
     function self:Wait(callback)
-        state = { predicate = function() return true end, callback = callback }
+        state = {predicate=function() return true end, callback=callback}
     end
     function self:Kill()
         state = nil
@@ -69,7 +69,7 @@ function self:MAIL_CLOSED()
 	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
 	-- Does not scan past the first 50 items since only the first 50 are viewable.
 	for i = 1, GetInboxNumItems() do
-		if not ({ GetInboxHeaderInfo(i) })[9] then return end
+		if not ({GetInboxHeaderInfo(i)})[9] then return end
 	end
 	MiniMapMailFrame:Hide()
 end
@@ -139,22 +139,22 @@ function self:ADDON_LOADED()
     SendMailMoney:ClearAllPoints()
     SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -5)
     SendMailMoneyGoldRight:SetPoint('RIGHT', 20, 0)
-   	do ({ SendMailMoneyGold:GetRegions() })[9]:SetDrawLayer('BORDER') end
+   	do ({SendMailMoneyGold:GetRegions()})[9]:SetDrawLayer('BORDER') end
    	SendMailMoneyGold:SetMaxLetters(7)
    	SendMailMoneyGold:SetWidth(50)
     SendMailMoneySilverRight:SetPoint('RIGHT', 10, 0)
-    do ({ SendMailMoneySilver:GetRegions() })[9]:SetDrawLayer('BORDER') end
+    do ({SendMailMoneySilver:GetRegions()})[9]:SetDrawLayer('BORDER') end
     SendMailMoneySilver:SetWidth(28)
     SendMailMoneySilver:SetPoint('LEFT', SendMailMoneyGold, 'RIGHT', 30, 0)
     SendMailMoneyCopperRight:SetPoint('RIGHT', 10, 0)
-    do ({ SendMailMoneyCopper:GetRegions() })[9]:SetDrawLayer('BORDER') end
+    do ({SendMailMoneyCopper:GetRegions()})[9]:SetDrawLayer('BORDER') end
     SendMailMoneyCopper:SetWidth(28)
     SendMailMoneyCopper:SetPoint('LEFT', SendMailMoneySilver, 'RIGHT', 20, 0)  
     SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
 
     -- hack to avoid automatic subject setting and button disabling from weird blizzard code
 	PostalMailButton = SendMailMailButton
-	SendMailMailButton = setmetatable({}, { __index = function() return function() end end })
+	SendMailMailButton = setmetatable({}, {__index = function() return function() end end})
     SendMailMailButton_OnClick = self.PostalMailButton_OnClick
     PostalSubjectEditBox = SendMailSubjectEditBox
     SendMailSubjectEditBox = setmetatable({}, {
@@ -210,7 +210,7 @@ function self:ADDON_LOADED()
     	AutoCompleteBox:Hide()
 	end
 
-	for _, editBox in { SendMailNameEditBox, SendMailSubjectEditBox } do
+	for _, editBox in {SendMailNameEditBox, SendMailSubjectEditBox} do
 		editBox:SetScript('OnEditFocusGained', function()
 			this:HighlightText()
 	    end)
@@ -373,12 +373,12 @@ function self:Inbox_OpenItem(i, inboxCount, selected)
 			return self:Inbox_OpenMail(selected)
 		elseif item then
 			TakeInboxItem(i)
-			self:When(function() return not ({ GetInboxHeaderInfo(i) })[8] or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
+			self:When(function() return not ({GetInboxHeaderInfo(i)})[8] or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
 				return self:Inbox_OpenItem(i, inboxCount, selected)
 			end)
 		elseif money > 0 then
 			TakeInboxMoney(i)
-			self:When(function() return ({ GetInboxHeaderInfo(i) })[5] == 0 or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
+			self:When(function() return ({GetInboxHeaderInfo(i)})[5] == 0 or GetInboxNumItems() < inboxCount or self.Inbox_skip end, function()
 				return self:Inbox_OpenItem(i, inboxCount, selected)
 			end)
 		else
@@ -525,43 +525,39 @@ function self.hook.ClickSendMailItemButton()
     self:SendMail_SetAttachment(self:GetCursorItem())
 end
 
-function self.hook.GetContainerItemInfo(...)
-    local item = { arg[1], arg[2] }
-    local ret = self:pack(self.orig.GetContainerItemInfo(unpack(arg)))
-    ret[3] = ret[3] or self:SendMail_Attached(item) and 1 or nil
+function self.hook.GetContainerItemInfo(bag, slot)
+    local ret = self:pack(self.orig.GetContainerItemInfo(bag, slot))
+    ret[3] = ret[3] or self:SendMail_Attached(bag, slot) and 1 or nil
     return unpack(ret)
 end
 
-function self.hook.PickupContainerItem(...)
-	local item = { arg[1], arg[2] }
-	if self:SendMail_Attached(item) then return end
-	if GetContainerItemInfo(unpack(item)) then self:SetCursorItem(item) end
-	return self.orig.PickupContainerItem(unpack(arg))
+function self.hook.PickupContainerItem(bag, slot)
+	if self:SendMail_Attached(bag, slot) then return end
+	if GetContainerItemInfo(bag, slot) then self:SetCursorItem(bag, slot) end
+	return self.orig.PickupContainerItem(bag, slot)
 end
 
-function self.hook.SplitContainerItem(...)
-    local item = { arg[1], arg[2] }
-    if self:SendMail_Attached(item) then return end
-    return self.orig.SplitContainerItem(unpack(arg))
+function self.hook.SplitContainerItem(bag, slot, amount)
+    if self:SendMail_Attached(bag, slot) then return end
+    return self.orig.SplitContainerItem(bag, slot, amount)
 end
 
-function self.hook.UseContainerItem(...)
-    local item = { arg[1], arg[2] }
-    if self:SendMail_Attached(item) then return end
+function self.hook.UseContainerItem(bag, slot, onself)
+    if self:SendMail_Attached(bag, slot) then return end
     if IsShiftKeyDown() or IsControlKeyDown() or IsAltKeyDown() then
-        return self.orig.UseContainerItem(unpack(arg))
+        return self.orig.UseContainerItem(bag, slot, onself)
     elseif SendMailFrame:IsVisible() then
-        self:SendMail_SetAttachment(item)
+        self:SendMail_SetAttachment{bag, slot}
     elseif TradeFrame:IsVisible() then
         for i = 1, 6 do
             if not GetTradePlayerItemLink(i) then
-                self.orig.PickupContainerItem(unpack(arg))
+                self.orig.PickupContainerItem(bag, slot)
                 ClickTradeButton(i)
                 return
             end
         end
     else
-        return self.orig.UseContainerItem(unpack(arg))
+        return self.orig.UseContainerItem(bag, slot, onself)
     end
 end
 
@@ -591,11 +587,11 @@ function self.PostalMailButton_OnClick()
 	end)
 end
 
-function self:SendMail_Attached(item)
+function self:SendMail_Attached(bag, slot)
 	if not MailFrame:IsVisible() then return false end
     for i = 1, ATTACHMENTS_MAX do
         local btn = getglobal('PostalAttachment' .. i)
-        if btn.item and btn.item[1] == item[1] and btn.item[2] == item[2] then
+        if btn.item and btn.item[1] == bag and btn.item[2] == slot then
             return true
         end
     end
@@ -603,7 +599,7 @@ function self:SendMail_Attached(item)
         return
     end
     for _, attachment in self.SendMail_state.attachments do
-        if attachment[1] == item[1] and attachment[2] == item[2] then
+        if attachment[1] == bag and attachment[2] == slot then
             return true
         end
     end
@@ -776,7 +772,7 @@ do
 		table.setn(matches, 0)
 		index = nil
 
-		local ignore = { [UnitName'player']=true }
+		local ignore = {[UnitName'player']=true}
 		local function process(name)
 			if not ignore[name] and strfind(strupper(name), strupper(input), nil, true) == 1 then
 				tinsert(matches, name)
