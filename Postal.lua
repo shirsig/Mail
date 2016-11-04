@@ -666,8 +666,15 @@ function SendMail_Attachments()
 end
 
 function SendMail_Clear()
+	local anyItem
 	for i = 1, ATTACHMENTS_MAX do
+		anyItem = anyItem or _G['PostalAttachment' .. i].item
         _G['PostalAttachment' .. i].item = nil
+	end
+	if anyItem then
+		ClearCursor()
+		PickupContainerItem(unpack(anyItem))
+		ClearCursor()
 	end
 	PostalMailButton:Disable()
 	SendMailNameEditBox:SetText''
