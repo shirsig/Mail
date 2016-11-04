@@ -8,10 +8,10 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Size>
 		<Scripts>
 			<OnClick>
-				Postal:SelectMatch(this:GetID())
+				Postal.SelectMatch(this:GetID())
 			</OnClick>
 			<OnTabPressed>
-				Postal:NextMatch()
+				Postal.NextMatch()
 			</OnTabPressed>
 		</Scripts>
 		<NormalFont inherits="GameFontNormal"/>
@@ -141,13 +141,13 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 				this:RegisterForDrag('LeftButton')
 			</OnLoad>
 			<OnReceiveDrag>
-				Postal:AttachmentButton_OnClick()
+				Postal.AttachmentButton_OnClick()
 			</OnReceiveDrag>
 			<OnDragStart>
-				Postal:AttachmentButton_OnClick()
+				Postal.AttachmentButton_OnClick()
 			</OnDragStart>
 			<OnClick>
-				Postal:AttachmentButton_OnClick()
+				Postal.AttachmentButton_OnClick()
 				this:GetScript'OnEnter'()
 			</OnClick>
 			<OnEnter>
@@ -203,7 +203,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Anchors>
 		<Scripts>
 			<OnClick>
-				Postal:Inbox_SetSelected()
+				Postal.Inbox_SetSelected()
 			</OnClick>
 		</Scripts>
 	</CheckButton>
@@ -229,7 +229,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Anchors>
 		<Scripts>
 			<OnClick>
-				Postal:Inbox_OpenSelected()
+				Postal.Inbox_OpenSelected()
 			</OnClick>
 		</Scripts>
 	</Button>
@@ -247,7 +247,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Anchors>
 		<Scripts>
 			<OnClick>
-				Postal:Inbox_OpenSelected(true)
+				Postal.Inbox_OpenSelected(true)
 			</OnClick>
 		</Scripts>
 	</Button>
