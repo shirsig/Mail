@@ -2,7 +2,7 @@
 C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<Script file="Postal.lua"/>
 
-	<Button name="AutoCompleteButtonTemplate" virtual="true">
+	<Button name="PostalAutoCompleteButtonTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="120" y="14"/>
 		</Size>
@@ -19,7 +19,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<DisabledFont inherits="GameFontDisable"/>
 		<HighlightTexture inherits="UIPanelButtonHighlightTexture"/>
 	</Button>
-	<Frame name="AutoCompleteBox" parent="SendMailNameEditBox" frameStrata="DIALOG" hidden="true">
+	<Frame name="PostalAutoCompleteBox" parent="SendMailNameEditBox" frameStrata="DIALOG" hidden="true">
 		<Size>
 			<AbsDimension x="5" y="5"/>
 		</Size>
@@ -39,7 +39,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Backdrop>
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString name="AutoCompleteInstructions" inherits="GameFontDisableSmall">
+				<FontString name="PostalAutoCompleteInstructions" inherits="GameFontDisableSmall">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT">
 							<Offset>
@@ -51,44 +51,44 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</Layer>
 		</Layers>
 		<Frames>
-			<Button name="AutoCompleteButton1" inherits="AutoCompleteButtonTemplate" id="1">
+			<Button name="PostalAutoCompleteButton1" inherits="PostalAutoCompleteButtonTemplate" id="1">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<!--This 10 is a magic number used in AutoComplete_Update when checking whether the AutoComplete box should be above or below the EditBox. Please update the number there if you change it here-->
+							<!--This 10 is a magic number used in PostalAutoComplete_Update when checking whether the PostalAutoComplete box should be above or below the EditBox. Please update the number there if you change it here-->
 							<AbsDimension x="0" y="-10"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton2" inherits="AutoCompleteButtonTemplate" id="2">
+			<Button name="PostalAutoCompleteButton2" inherits="PostalAutoCompleteButtonTemplate" id="2">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton1" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="PostalAutoCompleteButton1" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton3" inherits="AutoCompleteButtonTemplate" id="3">
+			<Button name="PostalAutoCompleteButton3" inherits="PostalAutoCompleteButtonTemplate" id="3">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton2" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="PostalAutoCompleteButton2" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton4" inherits="AutoCompleteButtonTemplate" id="4">
+			<Button name="PostalAutoCompleteButton4" inherits="PostalAutoCompleteButtonTemplate" id="4">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton3" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="PostalAutoCompleteButton3" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="AutoCompleteButton5" inherits="AutoCompleteButtonTemplate" id="5">
+			<Button name="PostalAutoCompleteButton5" inherits="PostalAutoCompleteButtonTemplate" id="5">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="AutoCompleteButton4" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="PostalAutoCompleteButton4" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
 		</Frames>
 		<Scripts>
 			<OnLoad>
-				AUTOCOMPLETE_MAX_BUTTONS = 5
+				POSTAL_AUTOCOMPLETE_MAX_BUTTONS = 5
 				this:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
 				this:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
-				this.maxHeight = AUTOCOMPLETE_MAX_BUTTONS * AutoCompleteButton1:GetHeight()
-				AutoCompleteInstructions:SetText("|cffbbbbbbPress Tab|r")
+				this.maxHeight = POSTAL_AUTOCOMPLETE_MAX_BUTTONS * PostalAutoCompleteButton1:GetHeight()
+				PostalAutoCompleteInstructions:SetText("|cffbbbbbbPress Tab|r")
 			</OnLoad>
 		</Scripts>
 	</Frame>
@@ -186,69 +186,4 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 	<Button name="PostalAttachment19" parent="SendMailFrame" inherits="PostalAttachment"/>
 	<Button name="PostalAttachment20" parent="SendMailFrame" inherits="PostalAttachment"/>
 	<Button name="PostalAttachment21" parent="SendMailFrame" inherits="PostalAttachment"/>
-
-	<CheckButton name="PostalBoxItemCBTemplate" hidden="true" virtual="true" inherits="OptionsCheckButtonTemplate">
-		<HitRectInsets>
-			<AbsInset left="0" right="0" top="0" bottom="0"/>
-		</HitRectInsets>
-		<Size>
-			<AbsDimension x="24" y="24"/>
-		</Size>
-		<Anchors>
-			<Anchor point="RIGHT" relativePoint="LEFT">
-				<Offset>
-					<AbsDimension x="1" y="0"/>
-				</Offset>
-			</Anchor>
-		</Anchors>
-		<Scripts>
-			<OnClick>
-				Postal.Inbox_SetSelected()
-			</OnClick>
-		</Scripts>
-	</CheckButton>
-
-	<CheckButton name="PostalBoxItem1CB" id="1" hidden="true" parent="MailItem1" inherits="PostalBoxItemCBTemplate"/>
-	<CheckButton name="PostalBoxItem2CB" id="2" hidden="true" parent="MailItem2" inherits="PostalBoxItemCBTemplate"/>
-	<CheckButton name="PostalBoxItem3CB" id="3" hidden="true" parent="MailItem3" inherits="PostalBoxItemCBTemplate"/>
-	<CheckButton name="PostalBoxItem4CB" id="4" hidden="true" parent="MailItem4" inherits="PostalBoxItemCBTemplate"/>
-	<CheckButton name="PostalBoxItem5CB" id="5" hidden="true" parent="MailItem5" inherits="PostalBoxItemCBTemplate"/>
-	<CheckButton name="PostalBoxItem6CB" id="6" hidden="true" parent="MailItem6" inherits="PostalBoxItemCBTemplate"/>
-	<CheckButton name="PostalBoxItem7CB" id="7" hidden="true" parent="MailItem7" inherits="PostalBoxItemCBTemplate"/>
-
-	<Button name="PostalInboxOpenSelected" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="Open Selected">
-		<Size>
-			<AbsDimension x="120" y="25"/>
-		</Size>
-		<Anchors>
-			<Anchor relativePoint="TOP" point="RIGHT">
-				<Offset>
-					<AbsDimension x="5" y="-53"/>
-				</Offset>
-			</Anchor>
-		</Anchors>
-		<Scripts>
-			<OnClick>
-				Postal.Inbox_OpenSelected()
-			</OnClick>
-		</Scripts>
-	</Button>
-
-	<Button name="PostalInboxOpenAllButton" parent="InboxFrame" inherits="UIPanelButtonTemplate" text="Open All">
-		<Size>
-			<AbsDimension x="120" y="25"/>
-		</Size>
-		<Anchors>
-			<Anchor relativePoint="TOP" point="LEFT">
-				<Offset>
-					<AbsDimension x="10" y="-53"/>
-				</Offset>
-			</Anchor>
-		</Anchors>
-		<Scripts>
-			<OnClick>
-				Postal.Inbox_OpenSelected(true)
-			</OnClick>
-		</Scripts>
-	</Button>
 </Ui>

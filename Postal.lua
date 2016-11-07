@@ -111,134 +111,8 @@ function ADDON_LOADED()
 	UIPanelWindows['MailFrame'].pushable = 1
 	UIPanelWindows['FriendsFrame'].pushable = 2
 
-	MailItem1:SetPoint('TOPLEFT', 'InboxFrame', 'TOPLEFT', 48, -80)
-	for i = 1, 7 do
-		_G['MailItem' .. i .. 'ExpireTime']:SetPoint('TOPRIGHT', 'MailItem' .. i, 'TOPRIGHT', 10, -4)
-		_G['MailItem' .. i]:SetWidth(280)
-	end
-
-    SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
-    PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
-    PostalHorizontalBarLeft:SetWidth(256)
-    PostalHorizontalBarLeft:SetHeight(16)
-    PostalHorizontalBarLeft:SetTexCoord(0, 1, 0, .25)
-    SendMailFrame:CreateTexture('PostalHorizontalBarRight', 'BACKGROUND')
-    PostalHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
-    PostalHorizontalBarRight:SetWidth(75)
-    PostalHorizontalBarRight:SetHeight(16)
-    PostalHorizontalBarRight:SetTexCoord(0, .29296875, .25, .5)
-    PostalHorizontalBarRight:SetPoint('LEFT', PostalHorizontalBarLeft, 'RIGHT')
-
-    do
-        local background = ({SendMailPackageButton:GetRegions()})[1]
-        background:Hide()
-        local count = ({SendMailPackageButton:GetRegions()})[3]
-        count:Hide()
-        SendMailPackageButton:Disable()
-        SendMailPackageButton:SetScript('OnReceiveDrag', nil)
-        SendMailPackageButton:SetScript('OnDragStart', nil)
-    end
-
-    SendMailMoneyText:SetPoint('TOPLEFT', 0, 0)
-    SendMailMoney:ClearAllPoints()
-    SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -5)
-    SendMailMoneyGoldRight:SetPoint('RIGHT', 20, 0)
-   	do ({SendMailMoneyGold:GetRegions()})[9]:SetDrawLayer('BORDER') end
-   	SendMailMoneyGold:SetMaxLetters(7)
-   	SendMailMoneyGold:SetWidth(50)
-    SendMailMoneySilverRight:SetPoint('RIGHT', 10, 0)
-    do ({SendMailMoneySilver:GetRegions()})[9]:SetDrawLayer('BORDER') end
-    SendMailMoneySilver:SetWidth(28)
-    SendMailMoneySilver:SetPoint('LEFT', SendMailMoneyGold, 'RIGHT', 30, 0)
-    SendMailMoneyCopperRight:SetPoint('RIGHT', 10, 0)
-    do ({SendMailMoneyCopper:GetRegions()})[9]:SetDrawLayer('BORDER') end
-    SendMailMoneyCopper:SetWidth(28)
-    SendMailMoneyCopper:SetPoint('LEFT', SendMailMoneySilver, 'RIGHT', 20, 0)  
-    SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
-
-    -- hack to avoid automatic subject setting and button disabling from weird blizzard code
-	PostalMailButton = SendMailMailButton
-	_G.SendMailMailButton = setmetatable({}, {__index = function() return function() end end})
-    _G.SendMailMailButton_OnClick = PostalMailButton_OnClick
-    PostalSubjectEditBox = SendMailSubjectEditBox
-    _G.SendMailSubjectEditBox = setmetatable({}, {
-    	__index = function(_, key)
-    		return function(_, ...)
-    			return PostalSubjectEditBox[key](PostalSubjectEditBox, unpack(arg))
-    		end
-    	end,
-    })
-
-	SendMailNameEditBox._SetText = SendMailNameEditBox.SetText
-	function SendMailNameEditBox:SetText(...)
-		if not Postal_To then
-			return self:_SetText(unpack(arg))
-		end
-	end
-	SendMailNameEditBox:SetScript('OnShow', function()
-		if Postal_To then
-			this:_SetText(Postal_To)
-		end
-    end)
-	SendMailNameEditBox:SetScript('OnChar', function()
-		_G.Postal_To = nil
-		GetSuggestions()
-    end)
-    SendMailNameEditBox:SetScript('OnTabPressed', function()
-    	if AutoCompleteBox:IsVisible() then
-    		if IsShiftKeyDown() then
-    			PreviousMatch()
-			else
-				NextMatch()
-			end
-		else
-			PostalSubjectEditBox:SetFocus()
-		end
-    end)
-    SendMailNameEditBox:SetScript('OnEnterPressed', function()
-    	if AutoCompleteBox:IsVisible() then
-    		AutoCompleteBox:Hide()
-    		this:HighlightText(0, 0)
-		else
-			PostalSubjectEditBox:SetFocus()
-		end
-    end)
-    SendMailNameEditBox:SetScript('OnEscapePressed', function()
-    	if AutoCompleteBox:IsVisible() then
-    		AutoCompleteBox:Hide()
-		else
-			this:ClearFocus()
-		end
-    end)
-    function SendMailNameEditBox.focusLoss()
-    	AutoCompleteBox:Hide()
-	end
-
-	for _, editBox in {SendMailNameEditBox, SendMailSubjectEditBox} do
-		editBox:SetScript('OnEditFocusGained', function()
-			this:HighlightText()
-	    end)
-	    editBox:SetScript('OnEditFocusLost', function()
-	    	(this.focusLoss or function() end)()
-	    	this:HighlightText(0, 0)
-	    end)
-	    do
-	        local lastClick
-		    editBox:SetScript('OnMouseDown', function()
-	            local x, y = GetCursorPosition()
-	            if lastClick and GetTime() - lastClick.t < .5 and x == lastClick.x and y == lastClick.y then
-	            	this:SetScript('OnUpdate', function()
-	            		this:HighlightText()
-	            		this:SetScript('OnUpdate', nil)
-	            	end)
-	            end
-	            lastClick = {t=GetTime(), x=x, y=y}
-	        end)
-    	end
-	end
-
-    Inbox_selectedItems = {}
-    SendMail_ready = true
+	Inbox_Load()
+	SendMail_Load()
 end
 
 function VARIABLES_LOADED()
@@ -269,10 +143,10 @@ function hook.InboxFrame_Update()
 	for i = 1, 7 do
 		local index = (i + (InboxFrame.pageNum - 1) * 7)
 		if index > GetInboxNumItems() then
-			_G['PostalBoxItem' .. i .. 'CB']:Hide()
+			_G['MailItem' .. i].check:Hide()
 		else
-			_G['PostalBoxItem' .. i .. 'CB']:Show()
-			_G['PostalBoxItem' .. i .. 'CB']:SetChecked(Inbox_selectedItems[index])
+			_G['MailItem' .. i].check:Show()
+			_G['MailItem' .. i].check:SetChecked(Inbox_selectedItems[index])
 		end
 	end
 	Inbox_Lock()
@@ -315,6 +189,43 @@ function hook.InboxFrameItem_OnEnter()
 		end
 	end
 	GameTooltip:Show()
+end
+
+function Inbox_Load()
+	MailItem1:SetPoint('TOPLEFT', 'InboxFrame', 'TOPLEFT', 48, -80)
+	for i = 1, 7 do
+		_G['MailItem' .. i .. 'ExpireTime']:SetPoint('TOPRIGHT', 'MailItem' .. i, 'TOPRIGHT', 10, -4)
+		_G['MailItem' .. i]:SetWidth(280)
+		local cb = CreateFrame('CheckButton', nil, _G['MailItem' .. i], 'OptionsCheckButtonTemplate')
+		cb:SetID(i)
+		cb:SetWidth(24)
+		cb:SetHeight(24)
+		cb:SetPoint('RIGHT', _G['MailItem' .. i], 'LEFT', 1, 0)
+		cb:SetScript('OnClick', Inbox_SetSelected)
+		cb:SetHitRectInsets(0, 0, 0, 0)
+		cb:Hide()
+		_G['MailItem' .. i].check = cb
+	end
+
+	do
+		local btn = CreateFrame('Button', nil, InboxFrame, 'UIPanelButtonTemplate')
+		btn:SetPoint('RIGHT', InboxFrame, 'TOP', 5, -53)
+		btn:SetWidth(120)
+		btn:SetHeight(25)
+		btn:SetText('Open Selected')
+		btn:SetScript('OnClick', Inbox_OpenSelected)
+	end
+
+	do
+		local btn = CreateFrame('Button', nil, InboxFrame, 'UIPanelButtonTemplate')
+		btn:SetPoint('LEFT', InboxFrame, 'TOP', 10, -53)
+		btn:SetWidth(120)
+		btn:SetHeight(25)
+		btn:SetText('Open All')
+		btn:SetScript('OnClick', function() Inbox_OpenSelected(true) end)
+	end
+
+    Inbox_selectedItems = {}
 end
 
 function Inbox_SetSelected()
@@ -557,7 +468,7 @@ end
 
 function PostalMailButton_OnClick()
 	Abort()
-	AutoCompleteBox:Hide()
+	PostalAutoCompleteBox:Hide()
 
 	_G.Postal_To = SendMailNameEditBox:GetText()
 	SendMailNameEditBox:HighlightText()
@@ -579,6 +490,130 @@ function PostalMailButton_OnClick()
 	end, function()
 		SendMail_Send()
 	end)
+end
+
+function SendMail_Load()
+	SendMailFrame:CreateTexture('PostalHorizontalBarLeft', 'BACKGROUND')
+    PostalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+    PostalHorizontalBarLeft:SetWidth(256)
+    PostalHorizontalBarLeft:SetHeight(16)
+    PostalHorizontalBarLeft:SetTexCoord(0, 1, 0, .25)
+    SendMailFrame:CreateTexture('PostalHorizontalBarRight', 'BACKGROUND')
+    PostalHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+    PostalHorizontalBarRight:SetWidth(75)
+    PostalHorizontalBarRight:SetHeight(16)
+    PostalHorizontalBarRight:SetTexCoord(0, .29296875, .25, .5)
+    PostalHorizontalBarRight:SetPoint('LEFT', PostalHorizontalBarLeft, 'RIGHT')
+
+    do
+        local background = ({SendMailPackageButton:GetRegions()})[1]
+        background:Hide()
+        local count = ({SendMailPackageButton:GetRegions()})[3]
+        count:Hide()
+        SendMailPackageButton:Disable()
+        SendMailPackageButton:SetScript('OnReceiveDrag', nil)
+        SendMailPackageButton:SetScript('OnDragStart', nil)
+    end
+
+    SendMailMoneyText:SetPoint('TOPLEFT', 0, 0)
+    SendMailMoney:ClearAllPoints()
+    SendMailMoney:SetPoint('TOPLEFT', SendMailMoneyText, 'BOTTOMLEFT', 5, -5)
+    SendMailMoneyGoldRight:SetPoint('RIGHT', 20, 0)
+   	do ({SendMailMoneyGold:GetRegions()})[9]:SetDrawLayer('BORDER') end
+   	SendMailMoneyGold:SetMaxLetters(7)
+   	SendMailMoneyGold:SetWidth(50)
+    SendMailMoneySilverRight:SetPoint('RIGHT', 10, 0)
+    do ({SendMailMoneySilver:GetRegions()})[9]:SetDrawLayer('BORDER') end
+    SendMailMoneySilver:SetWidth(28)
+    SendMailMoneySilver:SetPoint('LEFT', SendMailMoneyGold, 'RIGHT', 30, 0)
+    SendMailMoneyCopperRight:SetPoint('RIGHT', 10, 0)
+    do ({SendMailMoneyCopper:GetRegions()})[9]:SetDrawLayer('BORDER') end
+    SendMailMoneyCopper:SetWidth(28)
+    SendMailMoneyCopper:SetPoint('LEFT', SendMailMoneySilver, 'RIGHT', 20, 0)  
+    SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
+
+    -- hack to avoid automatic subject setting and button disabling from weird blizzard code
+	PostalMailButton = SendMailMailButton
+	_G.SendMailMailButton = setmetatable({}, {__index = function() return function() end end})
+    _G.SendMailMailButton_OnClick = PostalMailButton_OnClick
+    PostalSubjectEditBox = SendMailSubjectEditBox
+    _G.SendMailSubjectEditBox = setmetatable({}, {
+    	__index = function(_, key)
+    		return function(_, ...)
+    			return PostalSubjectEditBox[key](PostalSubjectEditBox, unpack(arg))
+    		end
+    	end,
+    })
+
+	SendMailNameEditBox._SetText = SendMailNameEditBox.SetText
+	function SendMailNameEditBox:SetText(...)
+		if not Postal_To then
+			return self:_SetText(unpack(arg))
+		end
+	end
+	SendMailNameEditBox:SetScript('OnShow', function()
+		if Postal_To then
+			this:_SetText(Postal_To)
+		end
+    end)
+	SendMailNameEditBox:SetScript('OnChar', function()
+		_G.Postal_To = nil
+		GetSuggestions()
+    end)
+    SendMailNameEditBox:SetScript('OnTabPressed', function()
+    	if PostalAutoCompleteBox:IsVisible() then
+    		if IsShiftKeyDown() then
+    			PreviousMatch()
+			else
+				NextMatch()
+			end
+		else
+			PostalSubjectEditBox:SetFocus()
+		end
+    end)
+    SendMailNameEditBox:SetScript('OnEnterPressed', function()
+    	if PostalAutoCompleteBox:IsVisible() then
+    		PostalAutoCompleteBox:Hide()
+    		this:HighlightText(0, 0)
+		else
+			PostalSubjectEditBox:SetFocus()
+		end
+    end)
+    SendMailNameEditBox:SetScript('OnEscapePressed', function()
+    	if PostalAutoCompleteBox:IsVisible() then
+    		PostalAutoCompleteBox:Hide()
+		else
+			this:ClearFocus()
+		end
+    end)
+    function SendMailNameEditBox.focusLoss()
+    	PostalAutoCompleteBox:Hide()
+	end
+
+	for _, editBox in {SendMailNameEditBox, SendMailSubjectEditBox} do
+		editBox:SetScript('OnEditFocusGained', function()
+			this:HighlightText()
+	    end)
+	    editBox:SetScript('OnEditFocusLost', function()
+	    	(this.focusLoss or function() end)()
+	    	this:HighlightText(0, 0)
+	    end)
+	    do
+	        local lastClick
+		    editBox:SetScript('OnMouseDown', function()
+	            local x, y = GetCursorPosition()
+	            if lastClick and GetTime() - lastClick.t < .5 and x == lastClick.x and y == lastClick.y then
+	            	this:SetScript('OnUpdate', function()
+	            		this:HighlightText()
+	            		this:SetScript('OnUpdate', nil)
+	            	end)
+	            end
+	            lastClick = {t=GetTime(), x=x, y=y}
+	        end)
+    	end
+	end
+
+    SendMail_ready = true
 end
 
 function SendMail_Attached(bag, slot)
@@ -737,8 +772,8 @@ do
 	local function complete()
 		SendMailNameEditBox:SetText(matches[index])
 		SendMailNameEditBox:HighlightText(inputLength, -1)
-		for i = 1, AUTOCOMPLETE_MAX_BUTTONS do
-			local button = _G['AutoCompleteButton' .. i]
+		for i = 1, POSTAL_AUTOCOMPLETE_MAX_BUTTONS do
+			local button = _G['PostalAutoCompleteButton' .. i]
 			if i == index then
 				button:LockHighlight()
     		else
@@ -764,7 +799,7 @@ do
 	function SelectMatch(i)
 		index = i
 		complete()
-		AutoCompleteBox:Hide()
+		PostalAutoCompleteBox:Hide()
 		SendMailNameEditBox:HighlightText(0, 0)
 	end
 
@@ -792,10 +827,10 @@ do
 			process(GetGuildRosterInfo(i))
 		end
 
-		table.setn(matches, min(getn(matches), AUTOCOMPLETE_MAX_BUTTONS))
+		table.setn(matches, min(getn(matches), POSTAL_AUTOCOMPLETE_MAX_BUTTONS))
 		if getn(matches) > 0 and (getn(matches) > 1 or input ~= matches[1]) then
-			for i = 1, AUTOCOMPLETE_MAX_BUTTONS do
-				local button = _G['AutoCompleteButton' .. i]
+			for i = 1, POSTAL_AUTOCOMPLETE_MAX_BUTTONS do
+				local button = _G['PostalAutoCompleteButton' .. i]
 				if i <= getn(matches) then
 					button:SetText(matches[i])
 		    		button:GetFontString():SetPoint('LEFT', button, 'LEFT', 15, 0)
@@ -804,13 +839,13 @@ do
 	    			button:Hide()
     			end
 			end
-			AutoCompleteBox:SetHeight(getn(matches) * AutoCompleteButton1:GetHeight() + 35)
-			AutoCompleteBox:SetWidth(120)
-			AutoCompleteBox:Show()
+			PostalAutoCompleteBox:SetHeight(getn(matches) * PostalAutoCompleteButton1:GetHeight() + 35)
+			PostalAutoCompleteBox:SetWidth(120)
+			PostalAutoCompleteBox:Show()
 			index = 1
 			complete()
 		else
-			AutoCompleteBox:Hide()
+			PostalAutoCompleteBox:Hide()
 		end
 	end
 end
