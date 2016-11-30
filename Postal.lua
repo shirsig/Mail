@@ -191,8 +191,10 @@ function hook.InboxFrameItem_OnEnter()
 	GameTooltip:Show()
 end
 
+CreateFrame('Frame', InboxFrame):SetScript('OnUpdate', CheckInbox)
+
 function Inbox_Load()
-	MailItem1:SetPoint('TOPLEFT', 'InboxFrame', 'TOPLEFT', 48, -80)
+	MailItem1:SetPoint('TOPLEFT', InboxFrame, 'TOPLEFT', 48, -80)
 	for i = 1, 7 do
 		_G['MailItem' .. i .. 'ExpireTime']:SetPoint('TOPRIGHT', 'MailItem' .. i, 'TOPRIGHT', 10, -4)
 		_G['MailItem' .. i]:SetWidth(280)
