@@ -440,7 +440,7 @@ end
 
 function hook.PickupContainerItem(bag, slot)
 	if SendMail_Attached(bag, slot) then return end
-	if GetContainerItemInfo(bag, slot) then SetCursorItem(bag, slot) end
+	if GetContainerItemInfo(bag, slot) then SetCursorItem{bag, slot} end
 	return orig.PickupContainerItem(bag, slot)
 end
 
