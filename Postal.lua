@@ -85,10 +85,8 @@ end
 function UI_ERROR_MESSAGE()
 	if Inbox_opening then
 		if arg1 == ERR_INV_FULL then
-			Print('Inventory full. Aborting.', 1, 0, 0)
 			Abort()
 		elseif arg1 == ERR_ITEM_MAX_COUNT then
-			Print('You already have the maximum amount of that item. Skipping.', 1, 0, 0)
 			Inbox_skip = true
 		end
 	end
@@ -126,10 +124,6 @@ end
 function hook.OpenMail_Reply(...)
 	_G.Postal_To = nil
 	return orig.OpenMail_Reply(unpack(arg))
-end
-
-function Print(msg, r, g, b)
-	DEFAULT_CHAT_FRAME:AddMessage('Postal: ' .. msg, r, g, b)
 end
 
 function Abort()
@@ -734,7 +728,8 @@ function SendMail_Send()
 		orig.ClickSendMailItemButton()
 
 		if not GetSendMailItem() then
-            return Print('Unknown error. Aborting.', 1, 0, 0)
+            DEFAULT_CHAT_FRAME:AddMessage('Postal: Unknown error. Aborting.', 1, 0, 0)
+            return
 		end
 	end
 
