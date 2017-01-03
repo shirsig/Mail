@@ -191,7 +191,7 @@ do
 		if x > 0 then
 			x = x - 1
 		elseif not Inbox_opening then
-			x = 50
+			x = 100
 			CheckInbox()
 		end
 	end)
