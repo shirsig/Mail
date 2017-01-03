@@ -185,7 +185,17 @@ function hook.InboxFrameItem_OnEnter()
 	GameTooltip:Show()
 end
 
-CreateFrame('Frame', InboxFrame):SetScript('OnUpdate', function() if not Inbox_opening then CheckInbox() end end)
+do
+	local x = 0
+	CreateFrame('Frame', InboxFrame):SetScript('OnUpdate', function()
+		if x > 0 then
+			x = x - 1
+		elseif not Inbox_opening then
+			x = 50
+			CheckInbox()
+		end
+	end)
+end
 
 function Inbox_Load()
 	MailItem1:SetPoint('TOPLEFT', InboxFrame, 'TOPLEFT', 48, -80)
