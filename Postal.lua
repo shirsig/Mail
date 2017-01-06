@@ -752,6 +752,8 @@ function SendMail_Send()
 		else
 			subject = '<' .. NO_ATTACHMENTS .. '>'
 		end
+	elseif SendMail_state.numMessages > 1 then
+		subject = subject .. format(' [%d/%d]', SendMail_state.numMessages - getn(SendMail_state.attachments), SendMail_state.numMessages)
 	end
 
     SendMail(SendMail_state.to, subject, SendMail_state.body)
