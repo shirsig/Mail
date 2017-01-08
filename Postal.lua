@@ -147,11 +147,11 @@ function hook.InboxFrame_Update()
 end
 
 function hook.InboxFrame_OnClick(index)
-	if arg1 == 'RightButton' then
+	if Inbox_opening then
+		this:SetChecked(nil)
+	elseif arg1 == 'RightButton' then
 		Abort()
 		Inbox_OpenMail{index}
-	elseif Inbox_opening then
-		this:SetChecked(nil)
 	else
 		return orig.InboxFrame_OnClick(index)
 	end
