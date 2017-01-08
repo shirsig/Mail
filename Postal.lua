@@ -147,7 +147,10 @@ function hook.InboxFrame_Update()
 end
 
 function hook.InboxFrame_OnClick(index)
-	if Inbox_opening then
+	if arg1 == 'RightButton' then
+		Abort()
+		Inbox_OpenMail{index}
+	elseif Inbox_opening then
 		this:SetChecked(nil)
 	else
 		return orig.InboxFrame_OnClick(index)
@@ -232,7 +235,6 @@ end
 
 function Inbox_Collect()
 	Abort()
-
 	local selected = {}
 	if next(Inbox_selectedItems) then
 		for i in Inbox_selectedItems do
