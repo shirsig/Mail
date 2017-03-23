@@ -114,13 +114,13 @@ function hook.InboxFrame_Update()
 	Inbox_UpdateLock()
 end
 
-function hook.InboxFrame_OnClick(index)
-	if Inbox_opening or arg1 == 'RightButton' and ({GetInboxHeaderInfo(index)})[6] > 0 then
+function hook.InboxFrame_OnClick(i)
+	if Inbox_opening or arg1 == 'RightButton' and ({GetInboxHeaderInfo(i)})[6] > 0 then
 		this:SetChecked(nil)
 	elseif arg1 == 'RightButton' then
-		Inbox_Open(index)
+		Inbox_Open(i)
 	else
-		return orig.InboxFrame_OnClick(index)
+		return orig.InboxFrame_OnClick(i)
 	end
 end
 
@@ -159,11 +159,14 @@ do
 	f:Hide()
 	f:SetScript('OnUpdate', function()
 		Inbox_opening = true
+		local _, _, _, _, _, COD = GetInboxHeaderInfo(i)
 		if i > GetInboxNumItems() then
 			Inbox_Abort()
-		elseif Inbox_Skip or not Inbox_Open(i) then
+		elseif Inbox_Skip or COD > 0 then
 			Inbox_Skip = false
 			i = i + 1
+		else
+			Inbox_Open(i)
 		end
 	end)
 	function Inbox_OpenAll()
@@ -181,15 +184,9 @@ do
 end
 
 function Inbox_Open(i)
-	local _, _, _, _, _, COD = GetInboxHeaderInfo(i)
-	if COD > 0 then
-		return false
-	else
-		TakeInboxMoney(i)
-		TakeInboxItem(i)
-		DeleteInboxItem(i)
-		return true
-	end
+	TakeInboxMoney(i)
+	TakeInboxItem(i)
+	DeleteInboxItem(i)
 end
 
 function Inbox_UpdateLock()
