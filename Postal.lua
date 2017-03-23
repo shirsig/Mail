@@ -136,11 +136,14 @@ function hook.InboxFrame_Update()
 	orig.InboxFrame_Update()
 	for i = 1, 7 do
 		local index = (i + (InboxFrame.pageNum - 1) * 7)
+		local item = _G['MailItem' .. i]
+		item:Hide() -- hack for tooltip update
+		item:Show()
 		if index > GetInboxNumItems() then
-			_G['MailItem' .. i].check:Hide()
+			item.check:Hide()
 		else
-			_G['MailItem' .. i].check:Show()
-			_G['MailItem' .. i].check:SetChecked(Inbox_selectedItems[index])
+			item.check:Show()
+			item.check:SetChecked(Inbox_selectedItems[index])
 		end
 	end
 	Inbox_Lock()
