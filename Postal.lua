@@ -115,7 +115,7 @@ function hook.InboxFrame_Update()
 end
 
 function hook.InboxFrame_OnClick(index)
-	if Inbox_opening then
+	if Inbox_opening or arg1 == 'RightButton' and ({GetInboxHeaderInfo(index)})[6] > 0 then
 		this:SetChecked(nil)
 	elseif arg1 == 'RightButton' then
 		Inbox_Open(index)
