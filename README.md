@@ -1,21 +1,20 @@
 # postal - WoW 1.12 addOn
 
 An extension to the Blizzard mail interface which
-- **Automatically opens mail**
-- **Mails multiple items at once**
+- **Automatically opens mail, very rapidly**
+- **Mails multiple items at once, very rapidly**
+- **Autocompletes names including alts in a dropdown**
 
-**\<Right Click>** or **\<Left Drag>** to add items to the attachments.<br/>
-**\<Right Click>** to add items to the trade frame. (not mail related but GMail had this shortcut and I decided to keep it)
+**\<Right Click>** On inbox items to loot the gold, loot the item and destroy the letter, in that order, if any.
+**\<Right Click>** or **\<Left Drag>** to add inventory items to the attachments.<br/>
+**\<Right Click>** to add inventory items to the trade frame.
 
-There are two very similar (to eachother) old Vanilla mail addOns commonly found in collections: GMail and CT_MailMod. Both use the same terrible mechanism for automation, unnecessarily making them extremely slow, have a rather ugly send interface and don't  hide the "New Mail"-notifier after Inbox_Opening the last mail automatically.
-
-This addOn solves all those problems, being **super fast**, adapting the **retail send layout** and correctly **hiding the notifier**. (the problem there is actually a bug in the wow client and the notifier will reappear after doing a /reload. This cannot be prevented.)
-
-I started this as a modification of *grennon*'s GMail and named it after GMail's retail version.
+The name postal was based on the retail namesake because this was originally started as a modification of GMail which was that addOn's predecessor.
+Most of the code is however devoted to the send tab and would most accurately be described as a partial backport of the retail blizzard interface.
 
 Note that due to limitations of the 1.12 API, behind the scenes, the items must be sent in separate mails.<br/>
 As a result of this **COD will only apply to the first item** if multiple items are added.
 
-![Alt text](http://i.imgur.com/89yIgi9.png)
+![Alt text](http://i.imgur.com/H0MUmXd.png)
 
 ![Alt text](http://i.imgur.com/ZDyfMIK.png)
