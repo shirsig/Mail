@@ -5,7 +5,7 @@ An extension to the Blizzard mail interface which
 - **Mails multiple items at once, very rapidly**
 - **Autocompletes names including alts in a dropdown**
 
-**\<Right Click>** On inbox items to loot the gold, loot the item and destroy the letter, in that order, if any.
+**\<Right Click>** On inbox items to loot the gold, loot the item and destroy the letter, in that order, if any.<br/>
 **\<Right Click>** or **\<Left Drag>** to add inventory items to the attachments.<br/>
 **\<Right Click>** to add inventory items to the trade frame.
 
