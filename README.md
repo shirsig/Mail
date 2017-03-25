@@ -15,6 +15,8 @@ Most of the code is however devoted to the send tab and would most accurately be
 Note that due to limitations of the 1.12 API, behind the scenes, the items must be sent in separate mails.<br/>
 As a result of this **COD will only apply to the first item** if multiple items are added.
 
+Also note that COD is always ignored when opening, both when fully automatic as well as by **<Right Click>**.
+
 ![Alt text](http://i.imgur.com/H0MUmXd.png)
 
 ![Alt text](http://i.imgur.com/ZDyfMIK.png)
