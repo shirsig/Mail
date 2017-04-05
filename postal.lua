@@ -18,9 +18,6 @@ local ATTACHMENTS_MAX_ROWS_SEND = 3
 
 function pack(...) return arg end
 
-orig = {}
-hook = setmetatable({}, {__newindex=function(_, k, v) orig[k] = _G[k]; _G[k] = v end})
-
 do
 	local f = CreateFrame'Frame'
 	local cursorItem
@@ -78,15 +75,24 @@ function UI_ERROR_MESSAGE()
 	end
 end
 
-function PLAYER_LOGIN()
-	local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-	postal_Characters[key] = postal_Characters[key] or {}
-	for char, lastSeen in postal_Characters[key] do
-		if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-			postal_Characters[key][char] = nil
+orig = {}
+do
+	local hooks = {}
+	hook = setmetatable({}, {__newindex=function(_, k, v) hooks[k] = v end})
+	function PLAYER_LOGIN()
+		for k, v in hooks do
+			orig[k] = _G[k]
+			_G[k] = v
 		end
+		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
+		postal_Characters[key] = postal_Characters[key] or {}
+		for char, lastSeen in postal_Characters[key] do
+			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
+				postal_Characters[key][char] = nil
+			end
+		end
+		postal_Characters[key][UnitName'player'] = GetTime()
 	end
-	postal_Characters[key][UnitName'player'] = GetTime()
 end
 
 function ADDON_LOADED()
