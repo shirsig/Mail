@@ -189,10 +189,13 @@ do
 	end
 end
 
-function Inbox_Open(i)
-	TakeInboxMoney(i)
-	TakeInboxItem(i)
-	DeleteInboxItem(i)
+do
+	local TakeInboxMoney, TakeInboxItem, DeleteInboxItem = TakeInboxMoney, TakeInboxItem, DeleteInboxItem -- hack to prevent beancounter from deleting mail
+	function Inbox_Open(i)
+		TakeInboxMoney(i)
+		TakeInboxItem(i)
+		DeleteInboxItem(i)
+	end
 end
 
 function Inbox_UpdateLock()
