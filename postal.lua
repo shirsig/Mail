@@ -98,8 +98,8 @@ end
 function ADDON_LOADED()
 	if arg1 ~= 'postal' then return end
 
-	UIPanelWindows.MailFrame.pushable = 1
-	UIPanelWindows.FriendsFrame.pushable = 2
+	MailFrame.pushable = 1
+	FriendsFrame.pushable = 2
 
 	Inbox_Load()
 	SendMail_Load()
