@@ -3,5 +3,5 @@
 ## Notes: Mailbox automation
 ## Author: shirsig
 ## SavedVariablesPerCharacter: postal_To
-## SavedVariables: postal_Characters
+## SavedVariables: postal_AutoCompleteNames
 postal.xml

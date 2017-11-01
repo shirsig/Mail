@@ -5,12 +5,12 @@ setfenv(1, setmetatable(postal, {__index=_G}))
 do
 	local f = CreateFrame'Frame'
 	f:SetScript('OnEvent', function() postal[event]() end)
-	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS'} do
+	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS', 'MAIL_INBOX_UPDATE'} do
 		f:RegisterEvent(event)
 	end
 end
 
-_G.postal_Characters = {}
+_G.postal_AutoCompleteNames = {}
 
 local ATTACHMENTS_MAX = 21
 local ATTACHMENTS_PER_ROW_SEND = 7
@@ -55,6 +55,9 @@ function MAIL_CLOSED()
 end
 
 function MAIL_SEND_SUCCESS()
+	if SendMail_state then
+		addAutoCompleteName(SendMail_state.subject)
+	end
 	SendMail_sending = false
 end
 
@@ -85,13 +88,45 @@ do
 			_G[k] = v
 		end
 		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		postal_Characters[key] = postal_Characters[key] or {}
-		for char, lastSeen in postal_Characters[key] do
+		postal_AutoCompleteNames[key] = postal_AutoCompleteNames[key] or {}
+		for char, lastSeen in postal_AutoCompleteNames[key] do
 			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				postal_Characters[key][char] = nil
+				postal_AutoCompleteNames[key][char] = nil
 			end
 		end
-		postal_Characters[key][UnitName'player'] = GetTime()
+		postal_AutoCompleteNames[key][UnitName'player'] = GetTime()
+	end
+end
+
+orig = {}
+do
+	local hooks = {}
+	hook = setmetatable({}, {__newindex=function(_, k, v) hooks[k] = v end})
+	function PLAYER_LOGIN()
+		for k, v in hooks do
+			orig[k] = _G[k]
+			_G[k] = v
+		end
+		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
+		postal_AutoCompleteNames[key] = postal_AutoCompleteNames[key] or {}
+		for char, lastSeen in postal_AutoCompleteNames[key] do
+			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
+				postal_AutoCompleteNames[key][char] = nil
+			end
+		end
+		function addAutoCompleteName(name)
+			postal_AutoCompleteNames[key][name] = GetTime()
+		end
+		addAutoCompleteName(UnitName'player')
+	end
+end
+
+function MAIL_INBOX_UPDATE()
+	for i = 1, GetInboxNumItems() do
+		local _, _, sender, _, _, _, _, _, _, _, _, canReply = GetInboxHeaderInfo(i)
+		if sender and canReply then
+			addAutoCompleteName(sender)
+		end
 	end
 end
 
@@ -733,7 +768,7 @@ do
 				ignore[name] = true
 			end
 		end
-		for character in postal_Characters[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
+		for character in postal_AutoCompleteNames[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
 			process(character)
 		end
 		for i = 1, GetNumFriends() do
