@@ -56,7 +56,7 @@ end
 
 function MAIL_SEND_SUCCESS()
 	if SendMail_state then
-		addAutoCompleteName(SendMail_state.subject)
+		addAutoCompleteName(gsub(strlower(SendMail_state.to), '^%l', strupper))
 	end
 	SendMail_sending = false
 end
