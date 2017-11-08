@@ -1,16 +1,16 @@
-postal = CreateFrame('Frame', nil, MailFrame)
+mail = CreateFrame('Frame', nil, MailFrame)
 local _G = getfenv(0)
-setfenv(1, setmetatable(postal, {__index=_G}))
+setfenv(1, setmetatable(mail, {__index=_G}))
 
 do
 	local f = CreateFrame'Frame'
-	f:SetScript('OnEvent', function() postal[event]() end)
+	f:SetScript('OnEvent', function() mail[event]() end)
 	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS', 'MAIL_INBOX_UPDATE'} do
 		f:RegisterEvent(event)
 	end
 end
 
-_G.postal_AutoCompleteNames = {}
+_G.mail_AutoCompleteNames = {}
 
 local ATTACHMENTS_MAX = 21
 local ATTACHMENTS_PER_ROW_SEND = 7
@@ -88,13 +88,13 @@ do
 			_G[k] = v
 		end
 		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		postal_AutoCompleteNames[key] = postal_AutoCompleteNames[key] or {}
-		for char, lastSeen in postal_AutoCompleteNames[key] do
+		mail_AutoCompleteNames[key] = mail_AutoCompleteNames[key] or {}
+		for char, lastSeen in mail_AutoCompleteNames[key] do
 			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				postal_AutoCompleteNames[key][char] = nil
+				mail_AutoCompleteNames[key][char] = nil
 			end
 		end
-		postal_AutoCompleteNames[key][UnitName'player'] = GetTime()
+		mail_AutoCompleteNames[key][UnitName'player'] = GetTime()
 	end
 end
 
@@ -108,14 +108,14 @@ do
 			_G[k] = v
 		end
 		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		postal_AutoCompleteNames[key] = postal_AutoCompleteNames[key] or {}
-		for char, lastSeen in postal_AutoCompleteNames[key] do
+		mail_AutoCompleteNames[key] = mail_AutoCompleteNames[key] or {}
+		for char, lastSeen in mail_AutoCompleteNames[key] do
 			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				postal_AutoCompleteNames[key][char] = nil
+				mail_AutoCompleteNames[key][char] = nil
 			end
 		end
 		function addAutoCompleteName(name)
-			postal_AutoCompleteNames[key][name] = GetTime()
+			mail_AutoCompleteNames[key][name] = GetTime()
 		end
 		addAutoCompleteName(UnitName'player')
 	end
@@ -131,7 +131,7 @@ function MAIL_INBOX_UPDATE()
 end
 
 function ADDON_LOADED()
-	if arg1 ~= 'postal' then return end
+	if arg1 ~= 'mail' then return end
 
 	MailFrame.pushable = 1
 	FriendsFrame.pushable = 2
@@ -141,7 +141,7 @@ function ADDON_LOADED()
 end
 
 function hook.OpenMail_Reply(...)
-	_G.postal_To = nil
+	_G.mail_To = nil
 	return orig.OpenMail_Reply(unpack(arg))
 end
 
@@ -250,7 +250,7 @@ function hook.SendMailFrame_Update()
     local last = SendMail_NumAttachments()
 
 	for i = 1, ATTACHMENTS_MAX do
-		local btn = _G['postalAttachment' .. i]
+		local btn = _G['mailAttachment' .. i]
 
 		local texture, count
 		if btn.item then
@@ -307,8 +307,8 @@ function hook.SendMailFrame_Update()
 	local marginxl = 8 + 6
 	local marginxr = 40 + 6
 	local areax = SendMailFrame:GetWidth() - marginxl - marginxr
-	local iconx = postalAttachment1:GetWidth() + 2
-	local icony = postalAttachment1:GetHeight() + 2
+	local iconx = mailAttachment1:GetWidth() + 2
+	local icony = mailAttachment1:GetHeight() + 2
 	local gapx1 = floor((areax - (iconx * ATTACHMENTS_PER_ROW_SEND)) / (ATTACHMENTS_PER_ROW_SEND - 1))
 	local gapx2 = floor((areax - (iconx * ATTACHMENTS_PER_ROW_SEND) - (gapx1 * (ATTACHMENTS_PER_ROW_SEND - 1))) / 2)
 	local gapy1 = 5
@@ -320,7 +320,7 @@ function hook.SendMailFrame_Update()
 	local taby = (icony + gapy1)
 	local scrollHeight = 249 - areay
 
-	postalHorizontalBarLeft:SetPoint('TOPLEFT', SendMailFrame, 'BOTTOMLEFT', 2 + 15, 184 + areay - 14)
+	mailHorizontalBarLeft:SetPoint('TOPLEFT', SendMailFrame, 'BOTTOMLEFT', 2 + 15, 184 + areay - 14)
 
 	SendMailScrollFrame:SetHeight(scrollHeight)
 	SendMailScrollChildFrame:SetHeight(scrollHeight)
@@ -339,9 +339,9 @@ function hook.SendMailFrame_Update()
     -- Set Items
 	for i = 1, ATTACHMENTS_MAX do
 		if cursory >= 0 then
-			_G['postalAttachment' .. i]:Enable()
-			_G['postalAttachment' .. i]:Show()
-			_G['postalAttachment' .. i]:SetPoint('TOPLEFT', 'SendMailFrame', 'BOTTOMLEFT', indentx + (tabx * cursorx), indenty + (taby * cursory))
+			_G['mailAttachment' .. i]:Enable()
+			_G['mailAttachment' .. i]:Show()
+			_G['mailAttachment' .. i]:SetPoint('TOPLEFT', 'SendMailFrame', 'BOTTOMLEFT', indentx + (tabx * cursorx), indenty + (taby * cursory))
 			
 			cursorx = cursorx + 1
 			if cursorx >= ATTACHMENTS_PER_ROW_SEND then
@@ -349,7 +349,7 @@ function hook.SendMailFrame_Update()
 				cursorx = 0
 			end
 		else
-			_G['postalAttachment' .. i]:Hide()
+			_G['mailAttachment' .. i]:Hide()
 		end
 	end
 
@@ -397,15 +397,15 @@ function hook.UseContainerItem(bag, slot, onself)
     end
 end
 
-function postalMailButton_OnClick()
-	postalAutoCompleteBox:Hide()
+function mailMailButton_OnClick()
+	mailAutoCompleteBox:Hide()
 
-	_G.postal_To = SendMailNameEditBox:GetText()
+	_G.mail_To = SendMailNameEditBox:GetText()
 	SendMailNameEditBox:HighlightText()
 
 	SendMail_state = {
-	    to = postal_To,
-	    subject = postalSubjectEditBox:GetText(),
+	    to = mail_To,
+	    subject = mailSubjectEditBox:GetText(),
 	    body = SendMailBodyEditBox:GetText(),
 	    money = MoneyInputFrame_GetCopper(SendMailMoney),
 	    cod = SendMailCODButton:GetChecked(),
@@ -418,17 +418,17 @@ function postalMailButton_OnClick()
 end
 
 function SendMail_Load()
-	SendMailFrame:CreateTexture('postalHorizontalBarLeft', 'BACKGROUND')
-    postalHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
-    postalHorizontalBarLeft:SetWidth(256)
-    postalHorizontalBarLeft:SetHeight(16)
-    postalHorizontalBarLeft:SetTexCoord(0, 1, 0, .25)
-    SendMailFrame:CreateTexture('postalHorizontalBarRight', 'BACKGROUND')
-    postalHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
-    postalHorizontalBarRight:SetWidth(75)
-    postalHorizontalBarRight:SetHeight(16)
-    postalHorizontalBarRight:SetTexCoord(0, .29296875, .25, .5)
-    postalHorizontalBarRight:SetPoint('LEFT', postalHorizontalBarLeft, 'RIGHT')
+	SendMailFrame:CreateTexture('mailHorizontalBarLeft', 'BACKGROUND')
+    mailHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+    mailHorizontalBarLeft:SetWidth(256)
+    mailHorizontalBarLeft:SetHeight(16)
+    mailHorizontalBarLeft:SetTexCoord(0, 1, 0, .25)
+    SendMailFrame:CreateTexture('mailHorizontalBarRight', 'BACKGROUND')
+    mailHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+    mailHorizontalBarRight:SetWidth(75)
+    mailHorizontalBarRight:SetHeight(16)
+    mailHorizontalBarRight:SetTexCoord(0, .29296875, .25, .5)
+    mailHorizontalBarRight:SetPoint('LEFT', mailHorizontalBarLeft, 'RIGHT')
 
     do
         local background = ({SendMailPackageButton:GetRegions()})[1]
@@ -458,61 +458,61 @@ function SendMail_Load()
     SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
 
     -- hack to avoid automatic subject setting and button disabling from weird blizzard code
-	postalMailButton = SendMailMailButton
+	mailMailButton = SendMailMailButton
 	_G.SendMailMailButton = setmetatable({}, {__index = function() return function() end end})
-    _G.SendMailMailButton_OnClick = postalMailButton_OnClick
-    postalSubjectEditBox = SendMailSubjectEditBox
+    _G.SendMailMailButton_OnClick = mailMailButton_OnClick
+    mailSubjectEditBox = SendMailSubjectEditBox
     _G.SendMailSubjectEditBox = setmetatable({}, {
     	__index = function(_, key)
     		return function(_, ...)
-    			return postalSubjectEditBox[key](postalSubjectEditBox, unpack(arg))
+    			return mailSubjectEditBox[key](mailSubjectEditBox, unpack(arg))
     		end
     	end,
     })
 
 	SendMailNameEditBox._SetText = SendMailNameEditBox.SetText
 	function SendMailNameEditBox:SetText(...)
-		if not postal_To then
+		if not mail_To then
 			return self:_SetText(unpack(arg))
 		end
 	end
 	SendMailNameEditBox:SetScript('OnShow', function()
-		if postal_To then
-			this:_SetText(postal_To)
+		if mail_To then
+			this:_SetText(mail_To)
 		end
     end)
 	SendMailNameEditBox:SetScript('OnChar', function()
-		_G.postal_To = nil
+		_G.mail_To = nil
 		GetSuggestions()
     end)
     SendMailNameEditBox:SetScript('OnTabPressed', function()
-    	if postalAutoCompleteBox:IsVisible() then
+    	if mailAutoCompleteBox:IsVisible() then
     		if IsShiftKeyDown() then
     			PreviousMatch()
 			else
 				NextMatch()
 			end
 		else
-			postalSubjectEditBox:SetFocus()
+			mailSubjectEditBox:SetFocus()
 		end
     end)
     SendMailNameEditBox:SetScript('OnEnterPressed', function()
-    	if postalAutoCompleteBox:IsVisible() then
-    		postalAutoCompleteBox:Hide()
+    	if mailAutoCompleteBox:IsVisible() then
+    		mailAutoCompleteBox:Hide()
     		this:HighlightText(0, 0)
 		else
-			postalSubjectEditBox:SetFocus()
+			mailSubjectEditBox:SetFocus()
 		end
     end)
     SendMailNameEditBox:SetScript('OnEscapePressed', function()
-    	if postalAutoCompleteBox:IsVisible() then
-    		postalAutoCompleteBox:Hide()
+    	if mailAutoCompleteBox:IsVisible() then
+    		mailAutoCompleteBox:Hide()
 		else
 			this:ClearFocus()
 		end
     end)
     function SendMailNameEditBox.focusLoss()
-    	postalAutoCompleteBox:Hide()
+    	mailAutoCompleteBox:Hide()
 	end
 
 	for _, editBox in {SendMailNameEditBox, SendMailSubjectEditBox} do
@@ -557,16 +557,16 @@ end
 
 function hook.SendMailFrame_CanSend()
 	if not SendMail_sending and strlen(SendMailNameEditBox:GetText()) > 0 and (SendMailSendMoneyButton:GetChecked() and MoneyInputFrame_GetCopper(SendMailMoney) or 0) + GetSendMailPrice() * max(1, SendMail_NumAttachments()) <= GetMoney() then
-		postalMailButton:Enable()
+		mailMailButton:Enable()
 	else
-		postalMailButton:Disable()
+		mailMailButton:Disable()
 	end
 end
 
 function SendMail_Attached(bag, slot)
 	if not MailFrame:IsVisible() then return false end
     for i = 1, ATTACHMENTS_MAX do
-        local btn = _G['postalAttachment' .. i]
+        local btn = _G['mailAttachment' .. i]
         if btn.item and btn.item[1] == bag and btn.item[2] == slot then
             return true
         end
@@ -599,8 +599,8 @@ function SendMail_SetAttachment(item, slot)
 		return
     elseif not slot then
 		for i = 1, ATTACHMENTS_MAX do
-			if not _G['postalAttachment' .. i].item then
-				slot = _G['postalAttachment' .. i]
+			if not _G['mailAttachment' .. i].item then
+				slot = _G['mailAttachment' .. i]
 	            break
 			end
 		end
@@ -628,7 +628,7 @@ end
 function SendMail_NumAttachments()
 	local x = 0
 	for i = 1, ATTACHMENTS_MAX do
-		if _G['postalAttachment' .. i].item then
+		if _G['mailAttachment' .. i].item then
 			x = x + 1
 		end
 	end
@@ -638,7 +638,7 @@ end
 function SendMail_Attachments()
     local t = {}
     for i = 1, ATTACHMENTS_MAX do
-        local btn = _G['postalAttachment' .. i]
+        local btn = _G['mailAttachment' .. i]
         if btn.item then
             tinsert(t, btn.item)
         end
@@ -649,18 +649,18 @@ end
 function SendMail_Clear()
 	local anyItem
 	for i = 1, ATTACHMENTS_MAX do
-		anyItem = anyItem or _G['postalAttachment' .. i].item
-        _G['postalAttachment' .. i].item = nil
+		anyItem = anyItem or _G['mailAttachment' .. i].item
+        _G['mailAttachment' .. i].item = nil
 	end
 	if anyItem then
 		ClearCursor()
 		PickupContainerItem(unpack(anyItem))
 		ClearCursor()
 	end
-	postalMailButton:Disable()
+	mailMailButton:Disable()
 	SendMailNameEditBox:SetText''
 	SendMailNameEditBox:SetFocus()
-	postalSubjectEditBox:SetText''
+	mailSubjectEditBox:SetText''
 	SendMailBodyEditBox:SetText''
 	MoneyInputFrame_ResetMoney(SendMailMoney)
 	SendMailRadioButton_OnClick(1)
@@ -678,7 +678,7 @@ function SendMail_Send()
 		orig.ClickSendMailItemButton()
 
 		if not GetSendMailItem() then
-            DEFAULT_CHAT_FRAME:AddMessage('postal: ' .. ERROR_CAPS, 1, 0, 0)
+            DEFAULT_CHAT_FRAME:AddMessage('mail: ' .. ERROR_CAPS, 1, 0, 0)
             return
 		end
 	end
@@ -721,8 +721,8 @@ do
 	local function complete()
 		SendMailNameEditBox:SetText(matches[index])
 		SendMailNameEditBox:HighlightText(inputLength, -1)
-		for i = 1, POSTAL_AUTOCOMPLETE_MAX_BUTTONS do
-			local button = _G['postalAutoCompleteButton' .. i]
+		for i = 1, MAIL_AUTOCOMPLETE_MAX_BUTTONS do
+			local button = _G['mailAutoCompleteButton' .. i]
 			if i == index then
 				button:LockHighlight()
     		else
@@ -748,7 +748,7 @@ do
 	function SelectMatch(i)
 		index = i
 		complete()
-		postalAutoCompleteBox:Hide()
+		mailAutoCompleteBox:Hide()
 		SendMailNameEditBox:HighlightText(0, 0)
 	end
 
@@ -768,7 +768,7 @@ do
 				ignore[name] = true
 			end
 		end
-		for character in postal_AutoCompleteNames[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
+		for character in mail_AutoCompleteNames[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
 			process(character)
 		end
 		for i = 1, GetNumFriends() do
@@ -778,10 +778,10 @@ do
 			process(GetGuildRosterInfo(i))
 		end
 
-		table.setn(matches, min(getn(matches), POSTAL_AUTOCOMPLETE_MAX_BUTTONS))
+		table.setn(matches, min(getn(matches), MAIL_AUTOCOMPLETE_MAX_BUTTONS))
 		if getn(matches) > 0 and (getn(matches) > 1 or input ~= matches[1]) then
-			for i = 1, POSTAL_AUTOCOMPLETE_MAX_BUTTONS do
-				local button = _G['postalAutoCompleteButton' .. i]
+			for i = 1, MAIL_AUTOCOMPLETE_MAX_BUTTONS do
+				local button = _G['mailAutoCompleteButton' .. i]
 				if i <= getn(matches) then
 					button:SetText(matches[i])
 		    		button:GetFontString():SetPoint('LEFT', button, 'LEFT', 15, 0)
@@ -790,13 +790,13 @@ do
 	    			button:Hide()
     			end
 			end
-			postalAutoCompleteBox:SetHeight(getn(matches) * postalAutoCompleteButton1:GetHeight() + 35)
-			postalAutoCompleteBox:SetWidth(120)
-			postalAutoCompleteBox:Show()
+			mailAutoCompleteBox:SetHeight(getn(matches) * mailAutoCompleteButton1:GetHeight() + 35)
+			mailAutoCompleteBox:SetWidth(120)
+			mailAutoCompleteBox:Show()
 			index = 1
 			complete()
 		else
-			postalAutoCompleteBox:Hide()
+			mailAutoCompleteBox:Hide()
 		end
 	end
 end
