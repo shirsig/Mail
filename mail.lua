@@ -56,7 +56,7 @@ end
 
 function MAIL_SEND_SUCCESS()
 	if SendMail_state then
-		addAutoCompleteName(gsub(strlower(SendMail_state.to), '^%l', strupper))
+		addAutoCompleteName(SendMail_state.to)
 	end
 	SendMail_sending = false
 end
@@ -513,6 +513,17 @@ function SendMail_Load()
     end)
     function SendMailNameEditBox.focusLoss()
     	mailAutoCompleteBox:Hide()
+	end
+	do
+		local orig = SendMailNameEditBox:GetScript'OnTextChanged'
+		SendMailNameEditBox:SetScript('OnTextChanged', function()
+			local text = this:GetText()
+			local formatted = gsub(strlower(text), '^%l', strupper)
+			if text ~= formatted then
+				this:SetText(formatted)
+			end
+			return orig()
+		end)
 	end
 
 	for _, editBox in {SendMailNameEditBox, SendMailSubjectEditBox} do
