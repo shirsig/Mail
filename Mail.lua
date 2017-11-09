@@ -1,16 +1,16 @@
-mail = CreateFrame('Frame', nil, MailFrame)
+Mail = CreateFrame('Frame', nil, MailFrame)
 local _G = getfenv(0)
-setfenv(1, setmetatable(mail, {__index=_G}))
+setfenv(1, setmetatable(Mail, {__index=_G}))
 
 do
 	local f = CreateFrame'Frame'
-	f:SetScript('OnEvent', function() mail[event]() end)
+	f:SetScript('OnEvent', function() Mail[event]() end)
 	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS', 'MAIL_INBOX_UPDATE'} do
 		f:RegisterEvent(event)
 	end
 end
 
-_G.mail_AutoCompleteNames = {}
+_G.Mail_AutoCompleteNames = {}
 
 local ATTACHMENTS_MAX = 21
 local ATTACHMENTS_PER_ROW_SEND = 7
@@ -88,13 +88,13 @@ do
 			_G[k] = v
 		end
 		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		mail_AutoCompleteNames[key] = mail_AutoCompleteNames[key] or {}
-		for char, lastSeen in mail_AutoCompleteNames[key] do
+		Mail_AutoCompleteNames[key] = Mail_AutoCompleteNames[key] or {}
+		for char, lastSeen in Mail_AutoCompleteNames[key] do
 			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				mail_AutoCompleteNames[key][char] = nil
+				Mail_AutoCompleteNames[key][char] = nil
 			end
 		end
-		mail_AutoCompleteNames[key][UnitName'player'] = GetTime()
+		Mail_AutoCompleteNames[key][UnitName'player'] = GetTime()
 	end
 end
 
@@ -108,14 +108,14 @@ do
 			_G[k] = v
 		end
 		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		mail_AutoCompleteNames[key] = mail_AutoCompleteNames[key] or {}
-		for char, lastSeen in mail_AutoCompleteNames[key] do
+		Mail_AutoCompleteNames[key] = Mail_AutoCompleteNames[key] or {}
+		for char, lastSeen in Mail_AutoCompleteNames[key] do
 			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				mail_AutoCompleteNames[key][char] = nil
+				Mail_AutoCompleteNames[key][char] = nil
 			end
 		end
 		function addAutoCompleteName(name)
-			mail_AutoCompleteNames[key][name] = GetTime()
+			Mail_AutoCompleteNames[key][name] = GetTime()
 		end
 		addAutoCompleteName(UnitName'player')
 	end
@@ -131,7 +131,7 @@ function MAIL_INBOX_UPDATE()
 end
 
 function ADDON_LOADED()
-	if arg1 ~= 'mail' then return end
+	if arg1 ~= 'Mail' then return end
 
 	MailFrame.pushable = 1
 	FriendsFrame.pushable = 2
@@ -141,7 +141,7 @@ function ADDON_LOADED()
 end
 
 function hook.OpenMail_Reply(...)
-	_G.mail_To = nil
+	_G.Mail_To = nil
 	return orig.OpenMail_Reply(unpack(arg))
 end
 
@@ -250,7 +250,7 @@ function hook.SendMailFrame_Update()
     local last = SendMail_NumAttachments()
 
 	for i = 1, ATTACHMENTS_MAX do
-		local btn = _G['mailAttachment' .. i]
+		local btn = _G['MailAttachment' .. i]
 
 		local texture, count
 		if btn.item then
@@ -307,8 +307,8 @@ function hook.SendMailFrame_Update()
 	local marginxl = 8 + 6
 	local marginxr = 40 + 6
 	local areax = SendMailFrame:GetWidth() - marginxl - marginxr
-	local iconx = mailAttachment1:GetWidth() + 2
-	local icony = mailAttachment1:GetHeight() + 2
+	local iconx = MailAttachment1:GetWidth() + 2
+	local icony = MailAttachment1:GetHeight() + 2
 	local gapx1 = floor((areax - (iconx * ATTACHMENTS_PER_ROW_SEND)) / (ATTACHMENTS_PER_ROW_SEND - 1))
 	local gapx2 = floor((areax - (iconx * ATTACHMENTS_PER_ROW_SEND) - (gapx1 * (ATTACHMENTS_PER_ROW_SEND - 1))) / 2)
 	local gapy1 = 5
@@ -320,7 +320,7 @@ function hook.SendMailFrame_Update()
 	local taby = (icony + gapy1)
 	local scrollHeight = 249 - areay
 
-	mailHorizontalBarLeft:SetPoint('TOPLEFT', SendMailFrame, 'BOTTOMLEFT', 2 + 15, 184 + areay - 14)
+	MailHorizontalBarLeft:SetPoint('TOPLEFT', SendMailFrame, 'BOTTOMLEFT', 2 + 15, 184 + areay - 14)
 
 	SendMailScrollFrame:SetHeight(scrollHeight)
 	SendMailScrollChildFrame:SetHeight(scrollHeight)
@@ -339,9 +339,9 @@ function hook.SendMailFrame_Update()
     -- Set Items
 	for i = 1, ATTACHMENTS_MAX do
 		if cursory >= 0 then
-			_G['mailAttachment' .. i]:Enable()
-			_G['mailAttachment' .. i]:Show()
-			_G['mailAttachment' .. i]:SetPoint('TOPLEFT', 'SendMailFrame', 'BOTTOMLEFT', indentx + (tabx * cursorx), indenty + (taby * cursory))
+			_G['MailAttachment' .. i]:Enable()
+			_G['MailAttachment' .. i]:Show()
+			_G['MailAttachment' .. i]:SetPoint('TOPLEFT', 'SendMailFrame', 'BOTTOMLEFT', indentx + (tabx * cursorx), indenty + (taby * cursory))
 			
 			cursorx = cursorx + 1
 			if cursorx >= ATTACHMENTS_PER_ROW_SEND then
@@ -349,7 +349,7 @@ function hook.SendMailFrame_Update()
 				cursorx = 0
 			end
 		else
-			_G['mailAttachment' .. i]:Hide()
+			_G['MailAttachment' .. i]:Hide()
 		end
 	end
 
@@ -397,15 +397,15 @@ function hook.UseContainerItem(bag, slot, onself)
     end
 end
 
-function mailMailButton_OnClick()
-	mailAutoCompleteBox:Hide()
+function MailMailButton_OnClick()
+	MailAutoCompleteBox:Hide()
 
-	_G.mail_To = SendMailNameEditBox:GetText()
+	_G.Mail_To = SendMailNameEditBox:GetText()
 	SendMailNameEditBox:HighlightText()
 
 	SendMail_state = {
-	    to = mail_To,
-	    subject = mailSubjectEditBox:GetText(),
+	    to = Mail_To,
+	    subject = MailSubjectEditBox:GetText(),
 	    body = SendMailBodyEditBox:GetText(),
 	    money = MoneyInputFrame_GetCopper(SendMailMoney),
 	    cod = SendMailCODButton:GetChecked(),
@@ -418,17 +418,17 @@ function mailMailButton_OnClick()
 end
 
 function SendMail_Load()
-	SendMailFrame:CreateTexture('mailHorizontalBarLeft', 'BACKGROUND')
-    mailHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
-    mailHorizontalBarLeft:SetWidth(256)
-    mailHorizontalBarLeft:SetHeight(16)
-    mailHorizontalBarLeft:SetTexCoord(0, 1, 0, .25)
-    SendMailFrame:CreateTexture('mailHorizontalBarRight', 'BACKGROUND')
-    mailHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
-    mailHorizontalBarRight:SetWidth(75)
-    mailHorizontalBarRight:SetHeight(16)
-    mailHorizontalBarRight:SetTexCoord(0, .29296875, .25, .5)
-    mailHorizontalBarRight:SetPoint('LEFT', mailHorizontalBarLeft, 'RIGHT')
+	SendMailFrame:CreateTexture('MailHorizontalBarLeft', 'BACKGROUND')
+    MailHorizontalBarLeft:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+    MailHorizontalBarLeft:SetWidth(256)
+    MailHorizontalBarLeft:SetHeight(16)
+    MailHorizontalBarLeft:SetTexCoord(0, 1, 0, .25)
+    SendMailFrame:CreateTexture('MailHorizontalBarRight', 'BACKGROUND')
+    MailHorizontalBarRight:SetTexture([[Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar]])
+    MailHorizontalBarRight:SetWidth(75)
+    MailHorizontalBarRight:SetHeight(16)
+    MailHorizontalBarRight:SetTexCoord(0, .29296875, .25, .5)
+    MailHorizontalBarRight:SetPoint('LEFT', MailHorizontalBarLeft, 'RIGHT')
 
     do
         local background = ({SendMailPackageButton:GetRegions()})[1]
@@ -458,61 +458,61 @@ function SendMail_Load()
     SendMailSendMoneyButton:SetPoint('TOPLEFT', SendMailMoney, 'TOPRIGHT', 0, 12)
 
     -- hack to avoid automatic subject setting and button disabling from weird blizzard code
-	mailMailButton = SendMailMailButton
+	MailMailButton = SendMailMailButton
 	_G.SendMailMailButton = setmetatable({}, {__index = function() return function() end end})
-    _G.SendMailMailButton_OnClick = mailMailButton_OnClick
-    mailSubjectEditBox = SendMailSubjectEditBox
+    _G.SendMailMailButton_OnClick = MailMailButton_OnClick
+    MailSubjectEditBox = SendMailSubjectEditBox
     _G.SendMailSubjectEditBox = setmetatable({}, {
     	__index = function(_, key)
     		return function(_, ...)
-    			return mailSubjectEditBox[key](mailSubjectEditBox, unpack(arg))
+    			return MailSubjectEditBox[key](MailSubjectEditBox, unpack(arg))
     		end
     	end,
     })
 
 	SendMailNameEditBox._SetText = SendMailNameEditBox.SetText
 	function SendMailNameEditBox:SetText(...)
-		if not mail_To then
+		if not Mail_To then
 			return self:_SetText(unpack(arg))
 		end
 	end
 	SendMailNameEditBox:SetScript('OnShow', function()
-		if mail_To then
-			this:_SetText(mail_To)
+		if Mail_To then
+			this:_SetText(Mail_To)
 		end
     end)
 	SendMailNameEditBox:SetScript('OnChar', function()
-		_G.mail_To = nil
+		_G.Mail_To = nil
 		GetSuggestions()
     end)
     SendMailNameEditBox:SetScript('OnTabPressed', function()
-    	if mailAutoCompleteBox:IsVisible() then
+    	if MailAutoCompleteBox:IsVisible() then
     		if IsShiftKeyDown() then
     			PreviousMatch()
 			else
 				NextMatch()
 			end
 		else
-			mailSubjectEditBox:SetFocus()
+			MailSubjectEditBox:SetFocus()
 		end
     end)
     SendMailNameEditBox:SetScript('OnEnterPressed', function()
-    	if mailAutoCompleteBox:IsVisible() then
-    		mailAutoCompleteBox:Hide()
+    	if MailAutoCompleteBox:IsVisible() then
+    		MailAutoCompleteBox:Hide()
     		this:HighlightText(0, 0)
 		else
-			mailSubjectEditBox:SetFocus()
+			MailSubjectEditBox:SetFocus()
 		end
     end)
     SendMailNameEditBox:SetScript('OnEscapePressed', function()
-    	if mailAutoCompleteBox:IsVisible() then
-    		mailAutoCompleteBox:Hide()
+    	if MailAutoCompleteBox:IsVisible() then
+    		MailAutoCompleteBox:Hide()
 		else
 			this:ClearFocus()
 		end
     end)
     function SendMailNameEditBox.focusLoss()
-    	mailAutoCompleteBox:Hide()
+    	MailAutoCompleteBox:Hide()
 	end
 	do
 		local orig = SendMailNameEditBox:GetScript'OnTextChanged'
@@ -568,16 +568,16 @@ end
 
 function hook.SendMailFrame_CanSend()
 	if not SendMail_sending and strlen(SendMailNameEditBox:GetText()) > 0 and (SendMailSendMoneyButton:GetChecked() and MoneyInputFrame_GetCopper(SendMailMoney) or 0) + GetSendMailPrice() * max(1, SendMail_NumAttachments()) <= GetMoney() then
-		mailMailButton:Enable()
+		MailMailButton:Enable()
 	else
-		mailMailButton:Disable()
+		MailMailButton:Disable()
 	end
 end
 
 function SendMail_Attached(bag, slot)
 	if not MailFrame:IsVisible() then return false end
     for i = 1, ATTACHMENTS_MAX do
-        local btn = _G['mailAttachment' .. i]
+        local btn = _G['MailAttachment' .. i]
         if btn.item and btn.item[1] == bag and btn.item[2] == slot then
             return true
         end
@@ -610,8 +610,8 @@ function SendMail_SetAttachment(item, slot)
 		return
     elseif not slot then
 		for i = 1, ATTACHMENTS_MAX do
-			if not _G['mailAttachment' .. i].item then
-				slot = _G['mailAttachment' .. i]
+			if not _G['MailAttachment' .. i].item then
+				slot = _G['MailAttachment' .. i]
 	            break
 			end
 		end
@@ -639,7 +639,7 @@ end
 function SendMail_NumAttachments()
 	local x = 0
 	for i = 1, ATTACHMENTS_MAX do
-		if _G['mailAttachment' .. i].item then
+		if _G['MailAttachment' .. i].item then
 			x = x + 1
 		end
 	end
@@ -649,7 +649,7 @@ end
 function SendMail_Attachments()
     local t = {}
     for i = 1, ATTACHMENTS_MAX do
-        local btn = _G['mailAttachment' .. i]
+        local btn = _G['MailAttachment' .. i]
         if btn.item then
             tinsert(t, btn.item)
         end
@@ -660,18 +660,18 @@ end
 function SendMail_Clear()
 	local anyItem
 	for i = 1, ATTACHMENTS_MAX do
-		anyItem = anyItem or _G['mailAttachment' .. i].item
-        _G['mailAttachment' .. i].item = nil
+		anyItem = anyItem or _G['MailAttachment' .. i].item
+        _G['MailAttachment' .. i].item = nil
 	end
 	if anyItem then
 		ClearCursor()
 		PickupContainerItem(unpack(anyItem))
 		ClearCursor()
 	end
-	mailMailButton:Disable()
+	MailMailButton:Disable()
 	SendMailNameEditBox:SetText''
 	SendMailNameEditBox:SetFocus()
-	mailSubjectEditBox:SetText''
+	MailSubjectEditBox:SetText''
 	SendMailBodyEditBox:SetText''
 	MoneyInputFrame_ResetMoney(SendMailMoney)
 	SendMailRadioButton_OnClick(1)
@@ -689,7 +689,7 @@ function SendMail_Send()
 		orig.ClickSendMailItemButton()
 
 		if not GetSendMailItem() then
-            DEFAULT_CHAT_FRAME:AddMessage('mail: ' .. ERROR_CAPS, 1, 0, 0)
+            DEFAULT_CHAT_FRAME:AddMessage('Mail: ' .. ERROR_CAPS, 1, 0, 0)
             return
 		end
 	end
@@ -733,7 +733,7 @@ do
 		SendMailNameEditBox:SetText(matches[index])
 		SendMailNameEditBox:HighlightText(inputLength, -1)
 		for i = 1, MAIL_AUTOCOMPLETE_MAX_BUTTONS do
-			local button = _G['mailAutoCompleteButton' .. i]
+			local button = _G['MailAutoCompleteButton' .. i]
 			if i == index then
 				button:LockHighlight()
     		else
@@ -759,7 +759,7 @@ do
 	function SelectMatch(i)
 		index = i
 		complete()
-		mailAutoCompleteBox:Hide()
+		MailAutoCompleteBox:Hide()
 		SendMailNameEditBox:HighlightText(0, 0)
 	end
 
@@ -779,7 +779,7 @@ do
 				ignore[name] = true
 			end
 		end
-		for character in mail_AutoCompleteNames[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
+		for character in Mail_AutoCompleteNames[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
 			process(character)
 		end
 		for i = 1, GetNumFriends() do
@@ -792,7 +792,7 @@ do
 		table.setn(matches, min(getn(matches), MAIL_AUTOCOMPLETE_MAX_BUTTONS))
 		if getn(matches) > 0 and (getn(matches) > 1 or input ~= matches[1]) then
 			for i = 1, MAIL_AUTOCOMPLETE_MAX_BUTTONS do
-				local button = _G['mailAutoCompleteButton' .. i]
+				local button = _G['MailAutoCompleteButton' .. i]
 				if i <= getn(matches) then
 					button:SetText(matches[i])
 		    		button:GetFontString():SetPoint('LEFT', button, 'LEFT', 15, 0)
@@ -801,13 +801,13 @@ do
 	    			button:Hide()
     			end
 			end
-			mailAutoCompleteBox:SetHeight(getn(matches) * mailAutoCompleteButton1:GetHeight() + 35)
-			mailAutoCompleteBox:SetWidth(120)
-			mailAutoCompleteBox:Show()
+			MailAutoCompleteBox:SetHeight(getn(matches) * MailAutoCompleteButton1:GetHeight() + 35)
+			MailAutoCompleteBox:SetWidth(120)
+			MailAutoCompleteBox:Show()
 			index = 1
 			complete()
 		else
-			mailAutoCompleteBox:Hide()
+			MailAutoCompleteBox:Hide()
 		end
 	end
 end

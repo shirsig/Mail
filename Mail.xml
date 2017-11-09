@@ -1,17 +1,17 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
-	<Script file="mail.lua"/>
+	<Script file="Mail.lua"/>
 
-	<Button name="mailAutoCompleteButtonTemplate" virtual="true">
+	<Button name="MailAutoCompleteButtonTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="120" y="14"/>
 		</Size>
 		<Scripts>
 			<OnClick>
-				mail.SelectMatch(this:GetID())
+				Mail.SelectMatch(this:GetID())
 			</OnClick>
 			<OnTabPressed>
-				mail.NextMatch()
+				Mail.NextMatch()
 			</OnTabPressed>
 		</Scripts>
 		<NormalFont inherits="GameFontNormal"/>
@@ -19,7 +19,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<DisabledFont inherits="GameFontDisable"/>
 		<HighlightTexture inherits="UIPanelButtonHighlightTexture"/>
 	</Button>
-	<Frame name="mailAutoCompleteBox" parent="SendMailNameEditBox" frameStrata="DIALOG" hidden="true">
+	<Frame name="MailAutoCompleteBox" parent="SendMailNameEditBox" frameStrata="DIALOG" hidden="true">
 		<Size>
 			<AbsDimension x="5" y="5"/>
 		</Size>
@@ -39,7 +39,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Backdrop>
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString name="mailAutoCompleteInstructions" inherits="GameFontDisableSmall">
+				<FontString name="MailAutoCompleteInstructions" inherits="GameFontDisableSmall">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT">
 							<Offset>
@@ -51,34 +51,34 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			</Layer>
 		</Layers>
 		<Frames>
-			<Button name="mailAutoCompleteButton1" inherits="mailAutoCompleteButtonTemplate" id="1">
+			<Button name="MailAutoCompleteButton1" inherits="MailAutoCompleteButtonTemplate" id="1">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<!--This 10 is a magic number used in mailAutoComplete_Update when checking whether the mailAutoComplete box should be above or below the EditBox. Please update the number there if you change it here-->
+							<!--This 10 is a magic number used in MailAutoComplete_Update when checking whether the MailAutoComplete box should be above or below the EditBox. Please update the number there if you change it here-->
 							<AbsDimension x="0" y="-10"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
 			</Button>
-			<Button name="mailAutoCompleteButton2" inherits="mailAutoCompleteButtonTemplate" id="2">
+			<Button name="MailAutoCompleteButton2" inherits="MailAutoCompleteButtonTemplate" id="2">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="mailAutoCompleteButton1" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="MailAutoCompleteButton1" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="mailAutoCompleteButton3" inherits="mailAutoCompleteButtonTemplate" id="3">
+			<Button name="MailAutoCompleteButton3" inherits="MailAutoCompleteButtonTemplate" id="3">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="mailAutoCompleteButton2" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="MailAutoCompleteButton2" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="mailAutoCompleteButton4" inherits="mailAutoCompleteButtonTemplate" id="4">
+			<Button name="MailAutoCompleteButton4" inherits="MailAutoCompleteButtonTemplate" id="4">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="mailAutoCompleteButton3" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="MailAutoCompleteButton3" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
-			<Button name="mailAutoCompleteButton5" inherits="mailAutoCompleteButtonTemplate" id="5">
+			<Button name="MailAutoCompleteButton5" inherits="MailAutoCompleteButtonTemplate" id="5">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="mailAutoCompleteButton4" relativePoint="BOTTOMLEFT"/>
+					<Anchor point="TOPLEFT" relativeTo="MailAutoCompleteButton4" relativePoint="BOTTOMLEFT"/>
 				</Anchors>
 			</Button>
 		</Frames>
@@ -87,13 +87,13 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 				MAIL_AUTOCOMPLETE_MAX_BUTTONS = 5
 				this:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
 				this:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
-				this.maxHeight = MAIL_AUTOCOMPLETE_MAX_BUTTONS * mailAutoCompleteButton1:GetHeight()
-				mailAutoCompleteInstructions:SetText("|cffbbbbbbPress Tab|r")
+				this.maxHeight = MAIL_AUTOCOMPLETE_MAX_BUTTONS * MailAutoCompleteButton1:GetHeight()
+				MailAutoCompleteInstructions:SetText("|cffbbbbbbPress Tab|r")
 			</OnLoad>
 		</Scripts>
 	</Frame>
 
-	<Button name="mailAttachment" virtual="true">
+	<Button name="MailAttachment" virtual="true">
 		<Size>
 			<AbsDimension x="37" y="37"/>
 		</Size>
@@ -141,13 +141,13 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 				this:RegisterForDrag('LeftButton')
 			</OnLoad>
 			<OnReceiveDrag>
-				mail.AttachmentButton_OnClick()
+				Mail.AttachmentButton_OnClick()
 			</OnReceiveDrag>
 			<OnDragStart>
-				mail.AttachmentButton_OnClick()
+				Mail.AttachmentButton_OnClick()
 			</OnDragStart>
 			<OnClick>
-				mail.AttachmentButton_OnClick()
+				Mail.AttachmentButton_OnClick()
 				this:GetScript'OnEnter'()
 			</OnClick>
 			<OnEnter>
@@ -165,25 +165,25 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
 	</Button>
 
-	<Button name="mailAttachment1" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment2" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment3" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment4" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment5" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment6" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment7" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment8" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment9" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment10" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment11" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment12" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment13" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment14" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment15" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment16" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment17" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment18" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment19" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment20" parent="SendMailFrame" inherits="mailAttachment"/>
-	<Button name="mailAttachment21" parent="SendMailFrame" inherits="mailAttachment"/>
+	<Button name="MailAttachment1" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment2" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment3" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment4" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment5" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment6" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment7" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment8" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment9" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment10" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment11" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment12" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment13" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment14" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment15" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment16" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment17" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment18" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment19" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment20" parent="SendMailFrame" inherits="MailAttachment"/>
+	<Button name="MailAttachment21" parent="SendMailFrame" inherits="MailAttachment"/>
 </Ui>

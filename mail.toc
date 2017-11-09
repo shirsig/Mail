@@ -1,7 +1,0 @@
-﻿## Interface: 11200
-## Title: mail
-## Notes: Mailbox automation
-## Author: shirsig
-## SavedVariablesPerCharacter: mail_To
-## SavedVariables: mail_AutoCompleteNames
-mail.xml
