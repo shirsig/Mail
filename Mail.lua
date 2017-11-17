@@ -5,7 +5,7 @@ setfenv(1, setmetatable(Mail, {__index=_G}))
 do
 	local f = CreateFrame'Frame'
 	f:SetScript('OnEvent', function() Mail[event]() end)
-	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS', 'MAIL_INBOX_UPDATE'} do
+	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS'} do
 		f:RegisterEvent(event)
 	end
 end
@@ -121,13 +121,12 @@ do
 	end
 end
 
-function MAIL_INBOX_UPDATE()
-	for i = 1, GetInboxNumItems() do
-		local _, _, sender, _, _, _, _, _, _, _, _, canReply = GetInboxHeaderInfo(i)
-		if sender and canReply then
-			addAutoCompleteName(sender)
-		end
+function hook.GetInboxHeaderInfo(...)
+	local sender, canReply = arg[3], arg[12]
+	if sender and canReply then
+		addAutoCompleteName(sender)
 	end
+	return orig.GetInboxHeaderInfo(unpack(arg))
 end
 
 function ADDON_LOADED()
