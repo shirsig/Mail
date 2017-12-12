@@ -132,8 +132,8 @@ end
 function ADDON_LOADED()
 	if arg1 ~= 'Mail' then return end
 
-	MailFrame.pushable = 1
-	FriendsFrame.pushable = 2
+	UIPanelWindows.MailFrame.pushable = 1
+	UIPanelWindows.FriendsFrame.pushable = 2
 
 	Inbox_Load()
 	SendMail_Load()
