@@ -185,12 +185,10 @@ do
 end
 
 function Inbox_Load()
-	local btn = CreateFrame('Button', 'OpenMailButton', InboxFrame, 'UIPanelButtonTemplate')
+	local btn = CreateFrame('Button', nil, InboxFrame, 'UIPanelButtonTemplate')
 	btn:SetPoint('BOTTOM', -10, 90)
 	btn:SetText(OPENMAIL)
-	local text_width = OpenMailButtonText:GetStringWidth()
-	if text_width < 60 then text_width = 60 end
-	btn:SetWidth(text_width+30)
+	btn:SetWidth(max(120, 30 + ({btn:GetRegions()})[1]:GetStringWidth()))
 	btn:SetHeight(25)
 	btn:SetScript('OnClick', Inbox_OpenAll)
 end
