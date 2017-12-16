@@ -68,7 +68,7 @@ function UI_ERROR_MESSAGE()
 		elseif arg1 == ERR_ITEM_MAX_COUNT then
 			Inbox_skip = true
 		end
-	elseif SendMail_sending and (arg1 == ERR_MAIL_TO_SELF or arg1 == ERR_MAIL_TARGET_NOT_FOUND or arg1 == ERR_MAIL_REACHED_CAP) then
+	elseif SendMail_sending and (arg1 == ERR_MAIL_TO_SELF or arg1 == ERR_PLAYER_WRONG_FACTION or arg1 == ERR_MAIL_TARGET_NOT_FOUND or arg1 == ERR_MAIL_REACHED_CAP) then
 		SendMail_sending = false
 		SendMail_Abort()
 		SendMail_state = nil
@@ -769,6 +769,12 @@ do
 		table.setn(matches, 0)
 		index = nil
 
+		local autoCompleteNames = {}
+		for name, time in Mail_AutoCompleteNames[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
+			tinsert(autoCompleteNames, {name=name, time=time})
+		end
+		sort(autoCompleteNames, function(a, b) return b.time < a.time end)
+
 		local ignore = {[UnitName'player']=true}
 		local function process(name)
 			if name then
@@ -778,8 +784,8 @@ do
 				ignore[name] = true
 			end
 		end
-		for character in Mail_AutoCompleteNames[GetCVar'realmName' .. '|' .. UnitFactionGroup'player'] do
-			process(character)
+		for _, t in autoCompleteNames do
+			process(t.name)
 		end
 		for i = 1, GetNumFriends() do
 			process(GetFriendInfo(i))
