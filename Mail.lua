@@ -5,7 +5,7 @@ setfenv(1, setmetatable(Mail, {__index=_G}))
 do
 	local f = CreateFrame'Frame'
 	f:SetScript('OnEvent', function() Mail[event]() end)
-	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS'} do
+	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS', 'MAIL_INBOX_UPDATE'} do
 		f:RegisterEvent(event)
 	end
 end
@@ -43,7 +43,7 @@ end
 
 function MAIL_CLOSED()
 	Inbox_Abort()
-	SendMail_Abort()
+	SendMail_sending = false
 	SendMail_Clear()
 
 	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
@@ -54,11 +54,20 @@ function MAIL_CLOSED()
 	MiniMapMailFrame:Hide()
 end
 
-function MAIL_SEND_SUCCESS()
-	if SendMail_state then
-		addAutoCompleteName(SendMail_state.to)
+do
+	local f = CreateFrame'Frame'
+	local function update()
+		f:SetScript('OnUpdate', nil)
+		SendMail_Send()
 	end
-	SendMail_sending = false
+	function MAIL_SEND_SUCCESS()
+		if SendMail_state then
+			addAutoCompleteName(SendMail_state.to)
+		end
+		if SendMail_sending then
+			f:SetScript('OnUpdate', update)
+		end
+	end
 end
 
 function UI_ERROR_MESSAGE()
@@ -70,7 +79,6 @@ function UI_ERROR_MESSAGE()
 		end
 	elseif SendMail_sending and (arg1 == ERR_MAIL_TO_SELF or arg1 == ERR_PLAYER_WRONG_FACTION or arg1 == ERR_MAIL_TARGET_NOT_FOUND or arg1 == ERR_MAIL_REACHED_CAP) then
 		SendMail_sending = false
-		SendMail_Abort()
 		SendMail_state = nil
 		ClearCursor()
 		orig.ClickSendMailItemButton()
@@ -195,10 +203,7 @@ end
 
 do
 	local i
-	local f = CreateFrame'Frame'
-	f:Hide()
-	f:SetScript('OnUpdate', function()
-		Inbox_opening = true
+	local function update()
 		local _, _, _, _, _, COD = GetInboxHeaderInfo(i)
 		if i > GetInboxNumItems() then
 			Inbox_Abort()
@@ -208,18 +213,22 @@ do
 		else
 			Inbox_Open(i)
 		end
-	end)
+	end
+	function MAIL_INBOX_UPDATE()
+		if Inbox_opening then
+			update()
+		end
+	end
 	function Inbox_OpenAll()
 		Inbox_opening = true
 		Inbox_UpdateLock()
 		i = 1
 		Inbox_skip = false
-		f:Show()
+		update()
 	end
 	function Inbox_Abort()
 		Inbox_opening = false
 		Inbox_UpdateLock()
-		f:Hide()
 	end
 end
 
@@ -413,7 +422,8 @@ function MailMailButton_OnClick()
 	}
 
 	SendMail_Clear()
-	SendMail_SendAll()
+	SendMail_sending = true
+	SendMail_Send()
 end
 
 function SendMail_Load()
@@ -547,22 +557,6 @@ function SendMail_Load()
 	        end)
     	end
 	end
-end
-
-do
-	local f = CreateFrame'Frame'
-	f:Hide()
-    f:SetScript('OnUpdate', function()
-        if not SendMail_sending then
-            SendMail_Send()
-        end
-    end)
-    function SendMail_SendAll()
-        f:Show()
-    end
-    function SendMail_Abort()
-        f:Hide()
-    end
 end
 
 function hook.SendMailFrame_CanSend()
@@ -716,10 +710,9 @@ function SendMail_Send()
 	end
 
     SendMail(SendMail_state.to, subject, SendMail_state.body)
-    SendMail_sending = true
 
     if getn(SendMail_state.attachments) == 0 then
-    	SendMail_Abort()
+    	SendMail_sending = false
     end
 end
 
