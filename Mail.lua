@@ -45,13 +45,6 @@ function MAIL_CLOSED()
 	Inbox_Abort()
 	SendMail_sending = false
 	SendMail_Clear()
-
-	-- Hides the minimap unread mail button if there are no unread mail on closing the mailbox.
-	-- Does not scan past the first 50 items since only the first 50 are viewable.
-	for i = 1, GetInboxNumItems() do
-		if not ({GetInboxHeaderInfo(i)})[9] then return end
-	end
-	MiniMapMailFrame:Hide()
 end
 
 do
@@ -273,6 +266,7 @@ end
 do
 	local TakeInboxMoney, TakeInboxItem, DeleteInboxItem = TakeInboxMoney, TakeInboxItem, DeleteInboxItem -- hack to prevent beancounter from deleting mail
 	function Inbox_Open(i)
+		GetInboxText(i)
 		TakeInboxMoney(i)
 		TakeInboxItem(i)
 		DeleteInboxItem(i)
