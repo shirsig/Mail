@@ -201,10 +201,10 @@ do
 	f:SetScript('OnUpdate', function()
 		if update then
 			update = false
-			local _, _, _, _, _, COD = GetInboxHeaderInfo(i)
+			local _, _, _, _, _, COD, _, _, _, _, _, _, isGM = GetInboxHeaderInfo(i)
 			if i > GetInboxNumItems() then
 				Inbox_Abort()
-			elseif Inbox_Skip or COD > 0 then
+			elseif Inbox_Skip or COD > 0 or isGM then
 				Inbox_Skip = false
 				i = i + 1
 				update = true
