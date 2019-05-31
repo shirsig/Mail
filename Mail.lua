@@ -88,14 +88,16 @@ do
 			orig[k] = _G[k]
 			_G[k] = v
 		end
-		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		Mail_AutoCompleteNames[key] = Mail_AutoCompleteNames[key] or {}
-		for char, lastSeen in Mail_AutoCompleteNames[key] do
-			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				Mail_AutoCompleteNames[key][char] = nil
+		if(GetCVar'realmName' ~= nil and UnitFactionGroup'player' =~ nil) then
+			local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
+			Mail_AutoCompleteNames[key] = Mail_AutoCompleteNames[key] or {}
+			for char, lastSeen in Mail_AutoCompleteNames[key] do
+				if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
+					Mail_AutoCompleteNames[key][char] = nil
+				end
 			end
+			Mail_AutoCompleteNames[key][UnitName'player'] = GetTime()
 		end
-		Mail_AutoCompleteNames[key][UnitName'player'] = GetTime()
 	end
 end
 
@@ -108,17 +110,19 @@ do
 			orig[k] = _G[k]
 			_G[k] = v
 		end
-		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		Mail_AutoCompleteNames[key] = Mail_AutoCompleteNames[key] or {}
-		for char, lastSeen in Mail_AutoCompleteNames[key] do
-			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				Mail_AutoCompleteNames[key][char] = nil
+		if(GetCVar'realmName' ~= nil and UnitFactionGroup'player' =~ nil) then
+			local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
+			Mail_AutoCompleteNames[key] = Mail_AutoCompleteNames[key] or {}
+			for char, lastSeen in Mail_AutoCompleteNames[key] do
+				if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
+					Mail_AutoCompleteNames[key][char] = nil
+				end
 			end
+			function addAutoCompleteName(name)
+				Mail_AutoCompleteNames[key][name] = GetTime()
+			end
+			addAutoCompleteName(UnitName'player')
 		end
-		function addAutoCompleteName(name)
-			Mail_AutoCompleteNames[key][name] = GetTime()
-		end
-		addAutoCompleteName(UnitName'player')
 	end
 end
 
