@@ -8,11 +8,11 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Size>
 		<Scripts>
 			<OnClick>
-				Mail.SelectMatch(this:GetID())
+				Mail.SelectMatch(self:GetID())
 			</OnClick>
-			<OnTabPressed>
+<!-- 			<OnTabPressed>
 				Mail.NextMatch()
-			</OnTabPressed>
+			</OnTabPressed> -->
 		</Scripts>
 		<NormalFont inherits="GameFontNormal"/>
 		<HighlightFont inherits="GameFontHighlight"/>
@@ -85,9 +85,9 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<Scripts>
 			<OnLoad>
 				MAIL_AUTOCOMPLETE_MAX_BUTTONS = 5
-				this:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
-				this:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
-				this.maxHeight = MAIL_AUTOCOMPLETE_MAX_BUTTONS * MailAutoCompleteButton1:GetHeight()
+				self:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b)
+				self:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
+				self.maxHeight = MAIL_AUTOCOMPLETE_MAX_BUTTONS * MailAutoCompleteButton1:GetHeight()
 				MailAutoCompleteInstructions:SetText("|cffbbbbbbPress Tab|r")
 			</OnLoad>
 		</Scripts>
@@ -137,23 +137,23 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Layers>
 		<Scripts>
 			<OnLoad>
-				this:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-				this:RegisterForDrag('LeftButton')
+				self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+				self:RegisterForDrag('LeftButton')
 			</OnLoad>
 			<OnReceiveDrag>
-				Mail.AttachmentButton_OnClick()
+				Mail.AttachmentButton_OnClick(self)
 			</OnReceiveDrag>
 			<OnDragStart>
-				Mail.AttachmentButton_OnClick()
+				Mail.AttachmentButton_OnClick(self)
 			</OnDragStart>
 			<OnClick>
-				Mail.AttachmentButton_OnClick()
-				this:GetScript'OnEnter'()
+				Mail.AttachmentButton_OnClick(self)
+				self:GetScript'OnEnter'()
 			</OnClick>
 			<OnEnter>
-				GameTooltip:SetOwner(this, 'ANCHOR_RIGHT')
-				if this.item then
-					GameTooltip:SetBagItem(unpack(this.item))
+				GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+				if self.item then
+					GameTooltip:SetBagItem(unpack(self.item))
 				else
 					GameTooltip:SetText(ATTACHMENT_TEXT, 1.0, 1.0, 1.0)
 				end

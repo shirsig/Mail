@@ -4,8 +4,8 @@ setfenv(1, setmetatable(Mail, {__index=_G}))
 
 do
 	local f = CreateFrame'Frame'
-	f:SetScript('OnEvent', function() Mail[event]() end)
-	for _, event in {'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS', 'MAIL_INBOX_UPDATE'} do
+	f:SetScript('OnEvent', function(self, event, ...) Mail[event](...) end)
+	for _, event in pairs{'ADDON_LOADED', 'PLAYER_LOGIN', 'UI_ERROR_MESSAGE', 'CURSOR_UPDATE', 'BAG_UPDATE', 'MAIL_CLOSED', 'MAIL_SEND_SUCCESS', 'MAIL_INBOX_UPDATE'} do
 		f:RegisterEvent(event)
 	end
 end
@@ -63,7 +63,7 @@ do
 	end
 end
 
-function UI_ERROR_MESSAGE()
+function UI_ERROR_MESSAGE(arg1)
 	if Inbox_opening then
 		if arg1 == ERR_INV_FULL then
 			Inbox_Abort()
@@ -76,26 +76,6 @@ function UI_ERROR_MESSAGE()
 		ClearCursor()
 		orig.ClickSendMailItemButton()
 		ClearCursor()
-	end
-end
-
-orig = {}
-do
-	local hooks = {}
-	hook = setmetatable({}, {__newindex=function(_, k, v) hooks[k] = v end})
-	function PLAYER_LOGIN()
-		for k, v in hooks do
-			orig[k] = _G[k]
-			_G[k] = v
-		end
-		local key = GetCVar'realmName' .. '|' .. UnitFactionGroup'player'
-		Mail_AutoCompleteNames[key] = Mail_AutoCompleteNames[key] or {}
-		for char, lastSeen in Mail_AutoCompleteNames[key] do
-			if GetTime() - lastSeen > 60 * 60 * 24 * 30 then
-				Mail_AutoCompleteNames[key][char] = nil
-			end
-		end
-		Mail_AutoCompleteNames[key][UnitName'player'] = GetTime()
 	end
 end
 
@@ -130,7 +110,7 @@ function hook.GetInboxHeaderInfo(...)
 	return orig.GetInboxHeaderInfo(unpack(arg))
 end
 
-function ADDON_LOADED()
+function ADDON_LOADED(arg1)
 	if arg1 ~= 'Mail' then return end
 
 	UIPanelWindows.MailFrame.pushable = 1
@@ -586,10 +566,10 @@ function SendMail_Attached(bag, slot)
     end
 end
 
-function AttachmentButton_OnClick()
-	local attachedItem = this.item
+function AttachmentButton_OnClick(self)
+	local attachedItem = self.item
 	local cursorItem = GetCursorItem()
-	if SendMail_SetAttachment(cursorItem, this) then
+	if SendMail_SetAttachment(cursorItem, self) then
 		if attachedItem then
 			if arg1 == 'LeftButton' then SetCursorItem(attachedItem) end
 			orig.PickupContainerItem(unpack(attachedItem))
