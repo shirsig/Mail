@@ -132,6 +132,12 @@ function hook.InboxFrame_Update()
 		_G['MailItem' .. i]:Hide()
 		_G['MailItem' .. i]:Show()
 	end
+	do
+		local currentPage = InboxFrame.pageNum
+		local totalPages = math.ceil(GetInboxNumItems() / INBOXITEMS_TO_DISPLAY)
+		local text = totalPages > 0 and (currentPage .. "/" .. totalPages) or ("Empty")
+		InboxTitleText:SetText("Inbox [" .. text .. "]")
+	end
 	Inbox_UpdateLock()
 end
 
