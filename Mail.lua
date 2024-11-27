@@ -671,10 +671,10 @@ function SendMail_Send()
 
 	local amount = SendMail_state.money
 	if amount > 0 then
-		SendMail_state.money = 0
 		if SendMail_state.cod then
 			SetSendMailCOD(amount)
 		else
+			SendMail_state.money = 0
 			SetSendMailMoney(amount)
 		end
 	end
